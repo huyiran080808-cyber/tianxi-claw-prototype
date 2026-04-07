@@ -836,6 +836,7 @@ function openOverlay(id,btn){
   var alreadyOpen=document.getElementById(id).classList.contains('show');
   panels.forEach(function(p){p.classList.remove('show')});
   document.querySelectorAll('.sb-footer-item').forEach(function(b){b.classList.remove('active')});
+  document.querySelectorAll('.chat-item').forEach(function(i){i.classList.remove('active')});
   if(!alreadyOpen){document.getElementById(id).classList.add('show');if(btn)btn.classList.add('active')}
 }
 function closeOverlay(id){document.getElementById(id).classList.remove('show')}
