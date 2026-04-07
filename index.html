@@ -256,14 +256,42 @@ body{font-family:-apple-system,'PingFang SC','Microsoft YaHei',sans-serif;backgr
 .skill-card-name{color:rgba(255,255,255,.85);font-size:14px;font-weight:500;margin-bottom:4px}
 .skill-card-desc{color:rgba(255,255,255,.4);font-size:12px;line-height:1.5}
 /* Task panel */
-.task-list{display:flex;flex-direction:column;gap:10px}
-.task-item{background:#1a1a1f;border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:16px;display:flex;align-items:center;gap:14px}
-.task-item-avatar{width:36px;height:36px;border-radius:50%;object-fit:cover;flex-shrink:0}
+.task-list{display:flex;flex-direction:column;gap:8px}
+.task-item{background:#1a1a1f;border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:12px 16px;display:flex;align-items:center;gap:12px}
+.task-item-avatar{width:32px;height:32px;border-radius:50%;object-fit:cover;flex-shrink:0}
 .task-item-info{flex:1;min-width:0}
-.task-item-name{color:rgba(255,255,255,.85);font-size:14px;font-weight:500;margin-bottom:3px}
-.task-item-desc{color:rgba(255,255,255,.45);font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.task-item-time{color:rgba(255,255,255,.35);font-size:11px;flex-shrink:0}
-.task-item-status{width:8px;height:8px;border-radius:50%;background:#4ade80;flex-shrink:0}
+.task-item-name{color:rgba(255,255,255,.85);font-size:13px;font-weight:500;margin-bottom:2px}
+.task-item-desc{color:rgba(255,255,255,.4);font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.task-item-time{color:rgba(255,255,255,.3);font-size:11px;flex-shrink:0;margin-right:8px}
+.task-item-status{width:7px;height:7px;border-radius:50%;background:#4ade80;flex-shrink:0}
+/* Toggle switch */
+.task-toggle{width:36px;height:20px;border-radius:10px;background:rgba(255,255,255,.15);cursor:pointer;position:relative;flex-shrink:0;transition:background .2s}
+.task-toggle.on{background:#46c0ff}
+.task-toggle::after{content:'';position:absolute;width:16px;height:16px;border-radius:50%;background:#fff;top:2px;left:2px;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.3)}
+.task-toggle.on::after{transform:translateX(16px)}
+/* Task panel layout */
+.task-panel-body{display:flex;flex-direction:column;height:100%;overflow:hidden}
+.task-section{flex-shrink:0;padding:16px 24px 0}
+.task-section-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.task-section-label{color:rgba(255,255,255,.5);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+.task-section-badge{color:rgba(255,255,255,.3);font-size:11px;background:rgba(255,255,255,.06);padding:2px 8px;border-radius:10px}
+.task-divider{height:1px;background:rgba(255,255,255,.06);margin:16px 0 0}
+/* Task board */
+.task-board{flex:1;overflow-y:auto;padding:16px 24px}
+.task-board::-webkit-scrollbar{width:4px}
+.task-board::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:2px}
+.task-board-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.board-card{background:#1a1a1f;border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:14px;cursor:pointer;transition:border-color .2s}
+.board-card:hover{border-color:rgba(255,255,255,.16)}
+.board-card.running{border-color:rgba(70,192,255,.35);background:rgba(70,192,255,.04)}
+.board-card.done{border-color:rgba(74,222,128,.25);background:rgba(74,222,128,.03)}
+.board-card.warn{border-color:rgba(245,158,11,.25);background:rgba(245,158,11,.03)}
+.board-card-name{color:rgba(255,255,255,.85);font-size:13px;font-weight:500;margin-bottom:6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.board-card-status{color:rgba(255,255,255,.45);font-size:11px;margin-bottom:8px}
+.board-progress{height:3px;background:rgba(255,255,255,.08);border-radius:2px;overflow:hidden}
+.board-progress-bar{height:100%;border-radius:2px;background:linear-gradient(90deg,#46c0ff,#a855f7);animation:progress-pulse 2s ease-in-out infinite}
+@keyframes progress-pulse{0%,100%{opacity:1}50%{opacity:.7}}
+.board-summary{color:rgba(255,255,255,.4);font-size:11px;line-height:1.6;margin-top:8px}
 /* Chat content switching */
 .chat-view{display:none;flex-direction:column}
 .chat-view.active{display:flex}
@@ -705,12 +733,44 @@ body{font-family:-apple-system,'PingFang SC','Microsoft YaHei',sans-serif;backgr
       <!-- Task List Overlay -->
       <div class="overlay-panel" id="taskPanel">
         <div class="overlay-hdr"><span class="overlay-title">定时任务</span></div>
-        <div class="overlay-body">
-          <div class="task-list">
-            <div class="task-item"><img class="task-item-avatar" src="https://www.figma.com/api/mcp/asset/8bfebb4f-5650-4b0e-ab10-7d8802eeaf57" alt=""><div class="task-item-info"><div class="task-item-name">学习虾 · 每日新闻推送</div><div class="task-item-desc">每天上午10点推送今日热点新闻，飞书消息直达</div></div><div class="task-item-time">每天 10:00</div><div class="task-item-status"></div></div>
-            <div class="task-item"><img class="task-item-avatar" src="https://www.figma.com/api/mcp/asset/8bfebb4f-5650-4b0e-ab10-7d8802eeaf57" alt=""><div class="task-item-info"><div class="task-item-name">工作虾 · 周报整理</div><div class="task-item-desc">每周一上午9点自动整理上周工作内容，生成周报</div></div><div class="task-item-time">每周一 09:00</div><div class="task-item-status"></div></div>
-            <div class="task-item"><img class="task-item-avatar" src="https://www.figma.com/api/mcp/asset/8bfebb4f-5650-4b0e-ab10-7d8802eeaf57" alt=""><div class="task-item-info"><div class="task-item-name">日常虾 · AI 新闻推送</div><div class="task-item-desc">每天下午18点推送 AI 领域热点，包含产品发布、技术突破</div></div><div class="task-item-time">每天 18:00</div><div class="task-item-status"></div></div>
-            <div class="task-item"><img class="task-item-avatar" src="https://www.figma.com/api/mcp/asset/8bfebb4f-5650-4b0e-ab10-7d8802eeaf57" alt=""><div class="task-item-info"><div class="task-item-name">学习虾 · 周报整理</div><div class="task-item-desc">每周一上午9点整理生活记录，生成生活周报</div></div><div class="task-item-time">每周一 09:00</div><div class="task-item-status" style="background:#f59e0b"></div></div>
+        <div class="task-panel-body">
+          <!-- 上方：任务配置列表 -->
+          <div class="task-section">
+            <div class="task-section-hdr"><span class="task-section-label">任务配置</span><span class="task-section-badge">4 个任务</span></div>
+            <div class="task-list">
+              <div class="task-item"><img class="task-item-avatar" src="https://www.figma.com/api/mcp/asset/8bfebb4f-5650-4b0e-ab10-7d8802eeaf57" alt=""><div class="task-item-info"><div class="task-item-name">学习虾 · 每日新闻推送</div><div class="task-item-desc">每天上午10点推送今日热点新闻</div></div><div class="task-item-time">每天 10:00</div><div class="task-toggle on" onclick="this.classList.toggle('on')"></div></div>
+              <div class="task-item"><img class="task-item-avatar" src="https://www.figma.com/api/mcp/asset/8bfebb4f-5650-4b0e-ab10-7d8802eeaf57" alt=""><div class="task-item-info"><div class="task-item-name">工作虾 · 周报整理</div><div class="task-item-desc">每周一上午9点自动整理上周工作内容</div></div><div class="task-item-time">每周一 09:00</div><div class="task-toggle on" onclick="this.classList.toggle('on')"></div></div>
+              <div class="task-item"><img class="task-item-avatar" src="https://www.figma.com/api/mcp/asset/8bfebb4f-5650-4b0e-ab10-7d8802eeaf57" alt=""><div class="task-item-info"><div class="task-item-name">日常虾 · AI 新闻推送</div><div class="task-item-desc">每天下午18点推送 AI 领域热点</div></div><div class="task-item-time">每天 18:00</div><div class="task-toggle on" onclick="this.classList.toggle('on')"></div></div>
+              <div class="task-item"><img class="task-item-avatar" src="https://www.figma.com/api/mcp/asset/8bfebb4f-5650-4b0e-ab10-7d8802eeaf57" alt=""><div class="task-item-info"><div class="task-item-name">学习虾 · 周报整理</div><div class="task-item-desc">每周一上午9点整理生活记录</div></div><div class="task-item-time">每周一 09:00</div><div class="task-toggle" onclick="this.classList.toggle('on')"></div></div>
+            </div>
+          </div>
+          <div class="task-divider"></div>
+          <!-- 下方：任务白板 -->
+          <div class="task-board">
+            <div class="task-section-hdr"><span class="task-section-label">任务白板</span><span class="task-section-badge">AI 自动抓取</span></div>
+            <div class="task-board-grid">
+              <div class="board-card running">
+                <div class="board-card-name">日常虾 · AI 新闻推送</div>
+                <div class="board-card-status">🔄 正在执行 · 18:00</div>
+                <div class="board-progress"><div class="board-progress-bar" style="width:65%"></div></div>
+                <div class="board-summary">已搜索 8 条资讯，正在生成摘要...</div>
+              </div>
+              <div class="board-card done">
+                <div class="board-card-name">学习虾 · 每日新闻</div>
+                <div class="board-card-status">✅ 已完成 · 10:02</div>
+                <div class="board-summary">今日推送 12 条 AI 热点，包含大模型新进展、行业融资动态...</div>
+              </div>
+              <div class="board-card">
+                <div class="board-card-name">工作虾 · 周报整理</div>
+                <div class="board-card-status">⏳ 等待中</div>
+                <div class="board-summary">下次执行：2026-04-13 09:00（周一）</div>
+              </div>
+              <div class="board-card warn">
+                <div class="board-card-name">学习虾 · 周报整理</div>
+                <div class="board-card-status">⚠️ 上次超时</div>
+                <div class="board-summary">上次执行超时已跳过，任务已暂停，请检查配置。</div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
