@@ -29,7 +29,7 @@ body{font-family:-apple-system,'PingFang SC','Microsoft YaHei',sans-serif;backgr
 .sb-search.focused .sb-search-cursor{display:block;animation:blink 1s step-end infinite}
 /* Pool switcher */
 .pool-wrap{position:relative;margin-bottom:12px}
-.pool-btn{width:100%;background:rgba(255,255,255,.04);border:.5px solid rgba(255,255,255,.08);border-radius:10px;padding:0 12px;height:34px;color:rgba(255,255,255,.55);font-size:13px;cursor:pointer;display:flex;align-items:center;gap:8px;font-family:inherit}
+.pool-btn{width:auto;align-self:flex-start;background:rgba(255,255,255,.04);border:.5px solid rgba(255,255,255,.08);border-radius:10px;padding:0 10px;height:30px;color:rgba(255,255,255,.55);font-size:12px;cursor:pointer;display:flex;align-items:center;gap:6px;font-family:inherit}
 .pool-btn:hover{background:rgba(255,255,255,.07);color:rgba(255,255,255,.75)}
 .pool-btn-icon{flex-shrink:0;opacity:.6}
 .pool-btn-label{flex:1;text-align:left}
@@ -215,7 +215,9 @@ body{font-family:-apple-system,'PingFang SC','Microsoft YaHei',sans-serif;backgr
 .input-cursor{width:1px;height:18px;background:rgba(255,255,255,.48);margin-top:3px;flex-shrink:0;display:none}
 .input-wrap.focused .input-cursor{display:block;animation:blink 1s step-end infinite}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
-.input-placeholder{color:rgba(255,255,255,.48);font-size:16px;line-height:26px;flex:1}
+.input-placeholder{color:rgba(255,255,255,.48);font-size:16px;line-height:26px;flex:1;outline:none;caret-color:transparent}
+.input-placeholder:focus{outline:none}
+.input-placeholder::selection{background:rgba(70,192,255,.2)}
 /* @ mention panel */
 .at-panel{display:none;position:absolute;bottom:calc(100% + 8px);left:0;right:0;background:#1a1a1f;border:1px solid rgba(255,255,255,.12);border-radius:14px;padding:8px;z-index:20;box-shadow:0 -8px 32px rgba(0,0,0,.5)}
 .at-panel.show{display:block}
@@ -293,8 +295,16 @@ body{font-family:-apple-system,'PingFang SC','Microsoft YaHei',sans-serif;backgr
 .rp-card p:last-child{margin-bottom:0}
 .rp-card .label{color:#e0e0e0}
 .rp-card .value{color:#aaa}
-.rp-tags{display:flex;flex-wrap:wrap;gap:8px}
-.rp-tag{background:#16161b;border-radius:10px;padding:8px 12px;display:flex;align-items:center;gap:6px;font-size:12px;color:#aaa}
+.rp-tags{display:flex;flex-direction:column;gap:2px}
+.rp-tag{display:none}
+.skill-list-items{display:flex;flex-direction:column;gap:2px}
+.skill-list-item{display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:8px;cursor:default;position:relative}
+.skill-list-item:hover{background:rgba(255,255,255,.05)}
+.skill-list-item-icon{font-size:14px;flex-shrink:0;width:20px;text-align:center}
+.skill-list-item-name{color:rgba(255,255,255,.75);font-size:13px;flex:1}
+.skill-remove{display:none;width:18px;height:18px;background:0 0;border:none;cursor:pointer;color:rgba(255,255,255,.4);font-size:14px;align-items:center;justify-content:center;border-radius:4px;flex-shrink:0}
+.skill-list-item:hover .skill-remove{display:flex}
+.skill-remove:hover{background:rgba(255,255,255,.1);color:rgba(255,255,255,.7)}
 
 /* Skill panel overlay */
 .skill-overlay{display:none;position:fixed;inset:0;z-index:200}
@@ -343,7 +353,7 @@ body{font-family:-apple-system,'PingFang SC','Microsoft YaHei',sans-serif;backgr
       <div class="sb-top">
         <div class="pool-wrap">
           <button class="pool-btn" id="poolBtn" onclick="togglePool()">
-            <svg class="pool-btn-icon" width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 7h10M7 2l5 5-5 5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <svg class="pool-btn-icon" width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M1 4l3-3 3 3M8 8l3 3-3 3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 1v8M8 3v8" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
             <span class="pool-btn-label">云Claw</span>
             <span class="pool-btn-arrow">▾</span>
           </button>
@@ -680,15 +690,15 @@ body{font-family:-apple-system,'PingFang SC','Microsoft YaHei',sans-serif;backgr
         <div class="overlay-body">
           <input class="skill-search" placeholder="搜索技能...">
           <div class="skill-grid">
-            <div class="skill-card"><div class="skill-card-icon">📰</div><div class="skill-card-name">热点资讯汇总</div><div class="skill-card-desc">自动抓取每日热点新闻，按重要性排序推送</div></div>
-            <div class="skill-card"><div class="skill-card-icon">📝</div><div class="skill-card-name">周报自动生成</div><div class="skill-card-desc">根据本周工作记录，一键生成结构化周报</div></div>
-            <div class="skill-card"><div class="skill-card-icon">📄</div><div class="skill-card-name">文档智能总结</div><div class="skill-card-desc">上传文档，自动提取关键信息和摘要</div></div>
-            <div class="skill-card"><div class="skill-card-icon">🎬</div><div class="skill-card-name">视频脚本生成</div><div class="skill-card-desc">输入主题，自动生成完整视频脚本</div></div>
-            <div class="skill-card"><div class="skill-card-icon">📊</div><div class="skill-card-name">数据分析助手</div><div class="skill-card-desc">上传数据文件，自动分析并生成可视化图表</div></div>
-            <div class="skill-card"><div class="skill-card-icon">🔍</div><div class="skill-card-name">智能搜索</div><div class="skill-card-desc">跨平台搜索，整合多源信息给出精准答案</div></div>
-            <div class="skill-card"><div class="skill-card-icon">📅</div><div class="skill-card-name">日程规划</div><div class="skill-card-desc">智能分析任务优先级，自动安排最优日程</div></div>
-            <div class="skill-card"><div class="skill-card-icon">✉️</div><div class="skill-card-name">邮件助手</div><div class="skill-card-desc">一键起草专业邮件，支持多种语气风格</div></div>
-            <div class="skill-card"><div class="skill-card-icon">🌐</div><div class="skill-card-name">网页内容提取</div><div class="skill-card-desc">输入网址，自动提取并整理页面核心内容</div></div>
+            <div class="skill-card" onclick="addSkill('📰','热点资讯汇总')"><div class="skill-card-icon">📰</div><div class="skill-card-name">热点资讯汇总</div><div class="skill-card-desc">自动抓取每日热点新闻，按重要性排序推送</div></div>
+            <div class="skill-card" onclick="addSkill('📝','周报自动生成')"><div class="skill-card-icon">📝</div><div class="skill-card-name">周报自动生成</div><div class="skill-card-desc">根据本周工作记录，一键生成结构化周报</div></div>
+            <div class="skill-card" onclick="addSkill('📄','文档智能总结')"><div class="skill-card-icon">📄</div><div class="skill-card-name">文档智能总结</div><div class="skill-card-desc">上传文档，自动提取关键信息和摘要</div></div>
+            <div class="skill-card" onclick="addSkill('🎬','视频脚本生成')"><div class="skill-card-icon">🎬</div><div class="skill-card-name">视频脚本生成</div><div class="skill-card-desc">输入主题，自动生成完整视频脚本</div></div>
+            <div class="skill-card" onclick="addSkill('📊','数据分析助手')"><div class="skill-card-icon">📊</div><div class="skill-card-name">数据分析助手</div><div class="skill-card-desc">上传数据文件，自动分析并生成可视化图表</div></div>
+            <div class="skill-card" onclick="addSkill('🔍','智能搜索')"><div class="skill-card-icon">🔍</div><div class="skill-card-name">智能搜索</div><div class="skill-card-desc">跨平台搜索，整合多源信息给出精准答案</div></div>
+            <div class="skill-card" onclick="addSkill('📅','日程规划')"><div class="skill-card-icon">📅</div><div class="skill-card-name">日程规划</div><div class="skill-card-desc">智能分析任务优先级，自动安排最优日程</div></div>
+            <div class="skill-card" onclick="addSkill('✉️','邮件助手')"><div class="skill-card-icon">✉️</div><div class="skill-card-name">邮件助手</div><div class="skill-card-desc">一键起草专业邮件，支持多种语气风格</div></div>
+            <div class="skill-card" onclick="addSkill('🌐','网页内容提取')"><div class="skill-card-icon">🌐</div><div class="skill-card-name">网页内容提取</div><div class="skill-card-desc">输入网址，自动提取并整理页面核心内容</div></div>
           </div>
         </div>
       </div>
@@ -713,7 +723,12 @@ body{font-family:-apple-system,'PingFang SC','Microsoft YaHei',sans-serif;backgr
             <div class="rp-card"><p><span class="label">经历：</span><span class="value">大学辅导员，管理184个学生。入职第一年被院长表扬"责任心强"，私下被学生称作"林爹"，总有无尽的耐心和贴心对待身边人。</span></p><p><span class="label">风格：</span><span class="value">温润如玉，对任何人和话题都保持温和的态度。耐心细致，共情极强，善于捕捉你的情绪波动。通透豁达，擅长看到表象下的深层本质。</span></p></div>
           </div>
           <div class="rp-section"><div class="rp-section-hdr"><span class="rp-section-title">技能列表</span><svg class="rp-section-edit" viewBox="0 0 14 14" fill="none" onclick="openSkillPanel()" style="cursor:pointer"><path d="M7 2v10M2 7h10" stroke="rgba(255,255,255,.5)" stroke-width="1.2" stroke-linecap="round"/></svg></div>
-            <div class="rp-tags"><div class="rp-tag">📄 【腾讯文档】一...</div><div class="rp-tag">🔍 重复文件差异对比</div><div class="rp-tag">🎬 视频脚本一键生成</div><div class="rp-tag">📰 热点资讯自动汇总</div></div>
+            <div class="skill-list-items" id="agentSkillList">
+              <div class="skill-list-item"><span class="skill-list-item-icon">📄</span><span class="skill-list-item-name">腾讯文档智能整理</span><button class="skill-remove" onclick="removeSkill(this)">✕</button></div>
+              <div class="skill-list-item"><span class="skill-list-item-icon">🔍</span><span class="skill-list-item-name">重复文件差异对比</span><button class="skill-remove" onclick="removeSkill(this)">✕</button></div>
+              <div class="skill-list-item"><span class="skill-list-item-icon">🎬</span><span class="skill-list-item-name">视频脚本一键生成</span><button class="skill-remove" onclick="removeSkill(this)">✕</button></div>
+              <div class="skill-list-item"><span class="skill-list-item-icon">📰</span><span class="skill-list-item-name">热点资讯自动汇总</span><button class="skill-remove" onclick="removeSkill(this)">✕</button></div>
+            </div>
           </div>
         </div>
       </div>
@@ -741,7 +756,9 @@ body{font-family:-apple-system,'PingFang SC','Microsoft YaHei',sans-serif;backgr
 <script>
 function toggleDropdown(e){e.stopPropagation();document.querySelectorAll('.agent-dropdown.show').forEach(d=>d.classList.remove('show'));e.currentTarget.parentElement.querySelector('.agent-dropdown').classList.toggle('show')}
 function togglePool(){var btn=document.getElementById('poolBtn');var dd=document.getElementById('poolDropdown');btn.classList.toggle('open');dd.classList.toggle('show')}
-function selectAt(name){document.getElementById('atPanel').classList.remove('show');var ph=document.querySelector('.input-placeholder');ph.textContent='@'+name+' '}
+function selectAt(name){document.getElementById('atPanel').classList.remove('show');var ph=document.querySelector('.input-placeholder');ph.textContent='@'+name+' ';ph.style.color='rgba(255,255,255,.8)'}
+function removeSkill(btn){btn.closest('.skill-list-item').remove()}
+function addSkill(icon,name){var list=document.getElementById('agentSkillList');if(!list)return;var existing=Array.from(list.querySelectorAll('.skill-list-item-name')).map(function(n){return n.textContent});if(existing.indexOf(name)>=0)return;var item=document.createElement('div');item.className='skill-list-item';item.innerHTML='<span class="skill-list-item-icon">'+icon+'</span><span class="skill-list-item-name">'+name+'</span><button class="skill-remove" onclick="removeSkill(this)">✕</button>';list.appendChild(item)}
 document.addEventListener('click',function(e){
   document.querySelectorAll('.agent-dropdown.show').forEach(d=>d.classList.remove('show'));
   var poolWrap=document.querySelector('.pool-wrap');
@@ -765,9 +782,13 @@ function openOverlay(id,btn){
 function closeOverlay(id){document.getElementById(id).classList.remove('show')}
 function switchChat(el,chatId){document.querySelectorAll('.chat-item').forEach(function(i){i.classList.remove('active')});el.classList.add('active');document.querySelectorAll('.chat-view').forEach(function(v){v.classList.remove('active')});var view=document.getElementById(chatId);if(view)view.classList.add('active');document.querySelectorAll('.overlay-panel').forEach(function(p){p.classList.remove('show')});document.querySelectorAll('.sb-footer-item').forEach(function(b){b.classList.remove('active')})}
 // Input box focus/blur + @ trigger
-document.querySelector('.input-box').addEventListener('click',function(){document.querySelector('.input-wrap').classList.add('focused')});
-document.querySelector('.input-placeholder').addEventListener('keyup',function(e){if(this.textContent.endsWith('@')){document.getElementById('atPanel').classList.add('show')}else{document.getElementById('atPanel').classList.remove('show')}});
-document.querySelector('.input-placeholder').setAttribute('contenteditable','true');
+var inputPh=document.querySelector('.input-placeholder');
+var phText='输入任务描述或提问任何问题';
+inputPh.setAttribute('contenteditable','true');
+inputPh.addEventListener('focus',function(){if(this.textContent===phText){this.textContent='';this.style.color='rgba(255,255,255,.8)'}document.querySelector('.input-wrap').classList.add('focused')});
+inputPh.addEventListener('blur',function(){if(!this.textContent.trim()){this.textContent=phText;this.style.color='rgba(255,255,255,.48)'}});
+inputPh.addEventListener('keyup',function(){if(this.textContent.endsWith('@')){document.getElementById('atPanel').classList.add('show')}else{document.getElementById('atPanel').classList.remove('show')}});
+document.querySelector('.input-box').addEventListener('click',function(){inputPh.focus()});
 document.addEventListener('click',function(e){var wrap=document.querySelector('.input-wrap');if(wrap.classList.contains('focused')&&!wrap.contains(e.target)){wrap.classList.remove('focused');document.getElementById('atPanel').classList.remove('show')}});
 // Search box focus/blur
 function focusSearch(el){el.classList.add('focused')}
