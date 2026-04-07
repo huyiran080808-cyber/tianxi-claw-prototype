@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>天禧 Claw</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,'PingFang SC','Microsoft YaHei',sans-serif;background:#000;display:flex;justify-content:center;align-items:center;min-height:100vh}
+.window{width:1200px;height:768px;border-radius:12px;overflow:hidden;display:flex;flex-direction:column;position:relative}
+.tabbar{height:52px;background:#18181b;display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-radius:10px 10px 0 0;border-bottom:1px solid rgba(255,255,255,.08);flex-shrink:0}
+.tabbar-left{display:flex;align-items:center;gap:16px;flex:1}
+.nav-btns{display:flex;gap:4px}
+.nav-btn{width:32px;height:32px;background:0 0;border:none;color:rgba(255,255,255,.4);cursor:pointer;display:flex;align-items:center;justify-content:center}
+.tabs-row{display:flex;flex:1;align-items:center}
+.tab-item{height:32px;padding:0 10px;background:0 0;border:none;color:rgba(255,255,255,.8);cursor:pointer;border-radius:8px;display:flex;align-items:center;gap:6px;font-size:12px;flex:1;max-width:200px;min-width:38px;position:relative}
+.tab-item:not(.active)::after{content:'';position:absolute;right:0;top:7.5px;width:1px;height:17px;background:rgba(255,255,255,.16);border-radius:4px}
+.tab-item.active{background:rgba(255,255,255,.08);border:.5px solid rgba(255,255,255,.08)}
+.tabbar-right{display:flex;gap:4px;align-items:center;padding-left:64px}
+.acct-pill{display:flex;align-items:center;gap:2px;height:28px;background:rgba(255,255,255,.08);border:.5px solid rgba(255,255,255,.08);border-radius:100px;padding:4px;cursor:pointer}
+.win-btn{width:32px;height:32px;background:0 0;border:none;color:rgba(255,255,255,.5);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px}
+.main{display:flex;flex:1;overflow:hidden;background:#000;position:relative}
+.sidebar{width:261px;background:#080808;display:flex;flex-direction:column;flex-shrink:0;position:relative;z-index:5}
+.sidebar::after{content:'';position:absolute;right:0;top:0;bottom:0;width:1px;background:#232324}
+.sb-top{padding:16px 12px 20px}
+.sb-search{background:#1e1e1f;border:1px solid transparent;border-radius:12px;padding:6px 36px 6px 24px;display:flex;align-items:center;gap:8px;height:38px;margin-bottom:12px;width:100%;cursor:text;transition:border-color .2s}
+.sb-search.focused{border-color:rgba(255,255,255,.24)}
+.sb-search-cursor{width:1px;height:14px;background:rgba(255,255,255,.48);display:none;flex-shrink:0}
+.sb-search.focused .sb-search-cursor{display:block;animation:blink 1s step-end infinite}
+.sb-search span{color:rgba(255,255,255,.8);font-size:14px}
+.sb-newagent{width:100%;background:rgba(255,255,255,.06);border:.5px solid rgba(0,0,0,.1);border-radius:12px;padding:0 11px;height:38px;color:rgba(255,255,255,.8);font-size:14px;cursor:pointer;display:flex;align-items:center;gap:10px;box-shadow:0 0 10px rgba(0,0,0,.08)}
+.agent-list{flex:1;overflow-y:auto;padding:0 12px}
+.agent-list::-webkit-scrollbar{width:4px}
+.agent-list::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:2px}
+.agent-group{margin-bottom:0}
+.agent-hdr{display:flex;align-items:center;gap:12px;padding:0 6px;margin-bottom:12px;position:relative;cursor:pointer}
+.agent-hdr-inner{display:flex;align-items:center;gap:12px;flex:1}
+.agent-avatar{width:34px;height:34px;border-radius:27px;display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden}
+.agent-avatar.tianxi{background:#ffc7ba;padding:10px}
+.agent-name{color:rgba(255,255,255,.8);font-size:14px;white-space:nowrap}
+.agent-expand{width:16px;height:16px;flex-shrink:0;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.agent-expand img{transition:transform .2s}
+.agent-expand.collapsed img{transform:rotate(180deg)}
+.chat-items.collapsed{display:none}
+.agent-more{display:none;width:20px;height:20px;background:0 0;border:none;cursor:pointer;color:rgba(255,255,255,.5);font-size:16px;letter-spacing:1px;align-items:center;justify-content:center;border-radius:4px;flex-shrink:0;position:relative}
+.agent-hdr:hover .agent-more{display:flex}
+.agent-more:hover{background:rgba(255,255,255,.1)}
+.agent-dropdown{display:none;position:absolute;right:0;top:100%;background:#1e1e1f;border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:4px;min-width:140px;z-index:100;box-shadow:0 8px 24px rgba(0,0,0,.5)}
+.agent-dropdown.show{display:block}
+.agent-dropdown-item{display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:8px;color:rgba(255,255,255,.7);font-size:13px;cursor:pointer;white-space:nowrap}
+.agent-dropdown-item:hover{background:rgba(255,255,255,.08);color:rgba(255,255,255,.9)}
+.agent-dropdown-item svg{width:16px;height:16px;flex-shrink:0;opacity:.6}
+.chat-items{display:flex;flex-direction:column;gap:4px;margin-bottom:0}
+.chat-item{display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:8px;cursor:pointer;transition:background .15s}
+.chat-item:hover{background:rgba(255,255,255,.04)}
+.chat-item.active{background:#2c2c2c;border-radius:12px}
+.chat-item span{color:rgba(255,255,255,.5);font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}
+.sb-divider{height:1px;background:rgba(255,255,255,.06);margin:16px 0}
+.sb-footer{padding:0 12px 16px;display:flex;flex-direction:column;gap:16px}
+.sb-footer-item{display:flex;align-items:center;gap:10px;cursor:pointer;padding:4px 6px;border-radius:8px;transition:background .15s}
+.sb-footer-item:hover{background:rgba(255,255,255,.06)}
+.sb-footer-item.active{background:rgba(255,255,255,.1)}
+.sb-footer-item.active span{color:rgba(255,255,255,.85)}
+.sb-footer-item.active svg{opacity:.85}
+.sb-footer-item svg{width:24px;height:24px;flex-shrink:0}
+.sb-footer-item span{color:rgba(255,255,255,.5);font-size:14px;flex:1}
+
+/* Content */
+.content{flex:1;position:relative;overflow:hidden;display:flex;flex-direction:column}
+.content-scroll{flex:1;overflow-y:auto;padding:24px 36px 180px;position:relative;z-index:1;display:flex;flex-direction:column}
+.content-scroll>*{flex-shrink:0}
+.content-scroll::-webkit-scrollbar{width:4px}
+.content-scroll::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:2px}
+.content-bg-glow{position:absolute;bottom:-3px;right:0;width:939px;height:202px;pointer-events:none;z-index:0}
+
+/* Layout-right icon in icon strip */
+.layout-right-btn{width:20px;height:20px;cursor:pointer;opacity:.5}
+.layout-right-btn:hover{opacity:.8}
+
+/* User bubble */
+.user-bubble{max-width:450px;background:#272728;padding:10px 20px;border-radius:12px 12px 2px 12px;align-self:flex-end;margin-bottom:24px}
+.user-bubble p{color:rgba(255,255,255,.8);font-size:16px;line-height:26px}
+
+/* Execution */
+.exec-area{margin-bottom:24px}
+.exec-header{display:flex;align-items:center;gap:12px;margin-bottom:8px;cursor:pointer}
+.exec-title{font-size:16px;line-height:26px;color:rgba(255,255,255,.6)}
+.exec-header svg{transition:transform .2s}
+.exec-header.collapsed svg{transform:rotate(180deg)}
+.timeline.collapsed{display:none}
+.timeline{position:relative;padding-left:20px}
+.tl-step{display:flex;align-items:flex-start;gap:6px;margin-bottom:16px;position:relative}
+.tl-step:last-child{margin-bottom:0}
+.tl-step::before{content:'';position:absolute;left:-17px;top:8px;width:6px;height:6px;border-radius:50%;background:#46c0ff;z-index:1}
+.tl-step:last-child::before{background:linear-gradient(135deg,#46c0ff,#a855f7)}
+.tl-step:not(:last-child)::after{content:'';position:absolute;left:-15px;top:16px;width:2px;height:calc(100% + 4px);background:linear-gradient(180deg,rgba(70,192,255,.4),rgba(70,192,255,.15))}
+.tl-icon{width:16px;height:16px;flex-shrink:0}
+.tl-text{color:rgba(255,255,255,.48);font-size:14px;line-height:24px}
+.tl-text-full{color:rgba(255,255,255,.48);font-size:14px;line-height:24px;width:100%}
+.tl-step-row{display:flex;align-items:center;gap:6px}
+
+/* AI Response */
+.ai-response{margin-top:16px;padding:24px 0}
+.ai-response-text{color:rgba(255,255,255,.8);font-size:16px;line-height:26px;margin-bottom:18px}
+.ai-response-text strong{font-weight:600}
+.ai-divider{height:1px;background:rgba(255,255,255,.1);margin:18px 0}
+.ai-section-title{color:rgba(255,255,255,.8);font-size:20px;line-height:30px;font-weight:500;margin-bottom:18px}
+.info-table{border:1px solid rgba(255,255,255,.12);border-radius:12px;overflow:hidden;max-width:406px}
+.info-table tr{border-bottom:1px solid rgba(255,255,255,.08)}
+.info-table tr:last-child{border-bottom:none}
+.info-table td{padding:12px 16px;font-size:14px;line-height:24px;color:rgba(255,255,255,.8)}
+.info-table td:first-child{background:rgba(255,255,255,.04);color:rgba(255,255,255,.6);width:130px;font-weight:500}
+.info-table td:last-child strong{font-weight:600}
+
+/* Report preview */
+.report-section{margin-top:24px}
+.report-title{color:rgba(255,255,255,.8);font-size:20px;line-height:30px;font-weight:500;margin-bottom:16px}
+.report-subtitle{color:rgba(255,255,255,.8);font-size:16px;line-height:26px;margin-bottom:12px}
+.report-list{display:flex;flex-direction:column;gap:8px}
+.report-item{display:flex;align-items:center;gap:2px}
+.report-dot{width:24px;height:24px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.report-dot::after{content:'';width:4.5px;height:4.5px;border-radius:50%;background:rgba(255,255,255,.4)}
+.report-item-text{color:rgba(255,255,255,.8);font-size:16px;line-height:26px}
+
+/* Report file card */
+.report-card{background:#1e1e22;border:.5px solid rgba(255,255,255,.08);border-radius:12px;overflow:hidden;margin-top:28px;max-width:511px}
+.report-card-header{display:flex;align-items:center;justify-content:space-between;padding:0 20px;height:57px;border-bottom:.5px solid rgba(255,255,255,.06)}
+.report-card-title{display:flex;align-items:center;gap:10px}
+.report-card-title .pdf-icon{width:20px;height:20px;background:#e53935;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:6px;color:#fff;font-weight:700;font-family:Inter,sans-serif;flex-shrink:0}
+.report-card-title span{color:rgba(255,255,255,.85);font-size:14px;letter-spacing:-.15px}
+.report-card-actions{display:flex;align-items:center;gap:8px}
+.report-card-actions button{width:32px;height:32px;background:0 0;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;border-radius:8px;color:rgba(255,255,255,.5)}
+.report-card-actions button:hover{background:rgba(255,255,255,.06);color:rgba(255,255,255,.7)}
+.report-card-actions .dl-btn{width:auto;border:.5px solid rgba(255,255,255,.16);padding:0 14px;gap:6px;font-size:13px;color:rgba(255,255,255,.8);font-family:inherit}
+.report-card-body{background:#131316;padding:13px 20px;min-height:360px;position:relative}
+.report-card-body img{width:100%;border-radius:4px;display:block}
+.report-card-scrollbar{position:absolute;right:2px;top:8px;width:4px;height:calc(100% - 16px);background:rgba(255,255,255,.04);border-radius:9999px}
+.report-card-scrollbar::after{content:'';display:block;width:4px;height:60px;background:rgba(255,255,255,.12);border-radius:9999px}
+
+/* File panel - overlay from right */
+.file-panel{position:absolute;right:0;top:0;bottom:0;width:0;background:#141414;overflow:hidden;transition:width .3s ease;display:flex;flex-direction:row;z-index:10;box-shadow:-8px 0 24px rgba(0,0,0,.4)}
+.file-panel.open{width:376px}
+.fp-icon-strip{width:36px;background:#0e0e0e;border-left:1px solid #232324;border-right:1px solid #2a2a30;display:flex;flex-direction:column;align-items:center;padding-top:12px;flex-shrink:0}
+.fp-body{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.fp-tabs{display:flex;height:40px;border-bottom:1px solid #2a2a2a;flex-shrink:0}
+.fp-tab{flex:0 0 auto;padding:0 20px;display:flex;align-items:center;justify-content:center;font-size:13px;color:#666;cursor:pointer;position:relative;white-space:nowrap}
+.fp-tab.active{color:#e8e8e8;font-weight:600}
+.fp-tab.active::after{content:'';position:absolute;bottom:0;left:16px;right:16px;height:2px;background:#e8e8e8}
+.fp-content{display:none;flex:1;overflow-y:auto;flex-direction:column}
+.fp-content.active{display:flex}
+.fp-content::-webkit-scrollbar{width:4px}
+.fp-content::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:2px}
+.fp-sec{padding:0 16px}
+.fp-sec-hdr{display:flex;align-items:center;justify-content:space-between;padding:10px 0;cursor:pointer}
+.fp-sec-title{color:rgba(255,255,255,.5);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+.fp-sec-arrow{color:rgba(255,255,255,.3);font-size:10px}
+.fp-sec-label{padding:4px 0 6px;color:rgba(255,255,255,.35);font-size:11px}
+.fp-task{display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:8px;cursor:pointer;margin-bottom:2px}
+.fp-task:hover{background:rgba(255,255,255,.04)}
+.fp-task.selected{background:rgba(120,90,220,.15);border:1px solid rgba(120,90,220,.25)}
+.fp-task-icon{width:16px;height:16px;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+.fp-task-name{color:rgba(255,255,255,.85);font-size:13px;flex:1}
+.fp-file{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;cursor:pointer;margin-bottom:2px}
+.fp-file:hover{background:rgba(255,255,255,.04)}
+.fp-file-icon{width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px;font-weight:700}
+.fp-file-icon.css{background:rgba(56,152,236,.12);color:#3898ec}
+.fp-file-icon.tsx{background:rgba(97,175,239,.12);color:#61afef}
+.fp-file-meta{flex:1;min-width:0}
+.fp-file-name{color:rgba(255,255,255,.85);font-size:13px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fp-file-path{color:rgba(255,255,255,.3);font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fp-file-badge{color:#4ade80;font-size:12px;font-weight:600;flex-shrink:0}
+.fp-expand{padding:12px 16px;text-align:center}
+.fp-expand a{color:rgba(255,255,255,.4);font-size:12px;cursor:pointer;text-decoration:none}
+.fp-expand a:hover{color:rgba(255,255,255,.6)}
+.fp-divider{height:1px;background:rgba(255,255,255,.06);margin:4px 16px}
+.fp-tree{flex:1;overflow-y:auto;padding:0}
+.fp-tree::-webkit-scrollbar{width:4px}
+.fp-tree::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:2px}
+.fp-label{padding:7px 16px;font-size:11px;color:#555}
+.fp-row{display:flex;align-items:center;gap:6px;height:32px;padding:0 16px;font-size:13px;color:#c8c8c8;cursor:pointer}
+.fp-row:hover{background:rgba(255,255,255,.04)}
+.fp-row.selected{background:#1e3a5f;border-radius:4px;color:#e8e8e8}
+.fp-row.indent1{padding-left:32px}
+.fp-row.indent2{padding-left:52px}
+.fp-icon{font-size:12px;flex-shrink:0}
+.fp-icon.json{color:#f59e0b;font-weight:bold;font-size:12px}
+.fp-icon.js{color:#eab308;font-weight:bold;font-size:10px}
+.fp-dot{width:8px;height:8px;border-radius:50%;background:#4ade80;flex-shrink:0}
+.fp-hint{height:48px;display:flex;align-items:center;justify-content:center;font-size:13px;color:#555;border-top:1px solid #2a2a2a;margin-top:auto}
+
+/* Input box + blur overlay */
+.input-wrap{position:absolute;bottom:0;left:0;right:0;z-index:2;padding:0 36px 24px;background:#000}
+.input-blur{position:absolute;top:-100px;left:0;right:0;height:100px;background:linear-gradient(to bottom,transparent,#000);pointer-events:none}
+.input-glow{position:absolute;inset:-2px;border-radius:22px;filter:blur(15px);opacity:.1;pointer-events:none;z-index:0;transition:opacity .3s;background:conic-gradient(from 90deg,#4786ff -2.3%,#308cff 11.1%,#1992ff 24.5%,#139dd4 26.2%,#0d9daa 28%,#06a37f 29.7%,#00a854 31.4%,#10a84f 32.3%,#20a84a 33.1%,#40a83f 34.9%,#60a835 36.6%,#80a82a 38.4%,#bfa815 41.9%,#dfa80b 43.6%,#ffa800 45.3%,#ff980c 47.4%,#ff8819 49.5%,#ff6732 53.6%,#ff464a 57.8%,#ff2563 61.9%,#d13e8a 68.5%,#a356b1 75.1%,#756ed8 81.7%,#4786ff 88.3%)}
+.input-wrap.focused .input-glow{opacity:.2}
+.input-box{position:relative;background:#000;border:1px solid transparent;border-radius:20px;padding:16px 18px;display:flex;flex-direction:column;gap:20px;cursor:text}
+.input-box::before{content:'';position:absolute;inset:-1px;border-radius:21px;padding:1px;background:conic-gradient(from 90deg,#4786ff -2.3%,#308cff 11.1%,#1992ff 24.5%,#139dd4 26.2%,#0d9daa 28%,#06a37f 29.7%,#00a854 31.4%,#10a84f 32.3%,#20a84a 33.1%,#40a83f 34.9%,#60a835 36.6%,#80a82a 38.4%,#bfa815 41.9%,#dfa80b 43.6%,#ffa800 45.3%,#ff980c 47.4%,#ff8819 49.5%,#ff6732 53.6%,#ff464a 57.8%,#ff2563 61.9%,#d13e8a 68.5%,#a356b1 75.1%,#756ed8 81.7%,#4786ff 88.3%);-webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);-webkit-mask-composite:xor;mask-composite:exclude;opacity:1;pointer-events:none}
+.input-textarea{display:flex;align-items:flex-start;gap:2px;min-height:52px}
+.input-cursor{width:1px;height:18px;background:rgba(255,255,255,.48);margin-top:3px;flex-shrink:0;display:none}
+.input-wrap.focused .input-cursor{display:block;animation:blink 1s step-end infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+.input-placeholder{color:rgba(255,255,255,.48);font-size:16px;line-height:26px;flex:1}
+.input-toolbar{display:flex;align-items:center;justify-content:flex-end}
+.tool-icons{display:flex;align-items:center;gap:16px}
+.tool-btns{display:flex;align-items:center;gap:8px}
+.icon-group{display:flex;align-items:center;gap:4px}
+.icon-btn{width:28px;height:28px;background:0 0;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:.5}
+.icon-btn:hover{opacity:.8}
+.tool-divider{width:1px;height:16px;background:rgba(255,255,255,.16)}
+.send-btn{width:32px;height:32px;background:rgba(255,255,255,.08);border:.5px solid rgba(255,255,255,.16);border-radius:20px;display:flex;align-items:center;justify-content:center;cursor:pointer}
+
+/* Full-screen overlay panels */
+.overlay-panel{display:none;position:absolute;inset:0;z-index:20;background:#111113;flex-direction:column}
+.overlay-panel.show{display:flex}
+.overlay-hdr{display:flex;align-items:center;justify-content:space-between;padding:16px 24px;border-bottom:1px solid rgba(255,255,255,.08);flex-shrink:0}
+.overlay-title{color:rgba(255,255,255,.9);font-size:16px;font-weight:600}
+.overlay-close{width:28px;height:28px;background:0 0;border:none;cursor:pointer;color:rgba(255,255,255,.5);font-size:18px;display:flex;align-items:center;justify-content:center;border-radius:6px}
+.overlay-close:hover{background:rgba(255,255,255,.08);color:rgba(255,255,255,.8)}
+.overlay-body{flex:1;overflow-y:auto;padding:20px 24px}
+.overlay-body::-webkit-scrollbar{width:4px}
+.overlay-body::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:2px}
+/* Skill panel */
+.skill-search{background:#1e1e22;border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:8px 16px;width:100%;color:rgba(255,255,255,.8);font-size:14px;outline:none;margin-bottom:20px}
+.skill-search::placeholder{color:rgba(255,255,255,.3)}
+.skill-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.skill-card{background:#1a1a1f;border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:16px;cursor:pointer;transition:border-color .2s}
+.skill-card:hover{border-color:rgba(255,255,255,.2)}
+.skill-card-icon{font-size:24px;margin-bottom:10px}
+.skill-card-name{color:rgba(255,255,255,.85);font-size:14px;font-weight:500;margin-bottom:4px}
+.skill-card-desc{color:rgba(255,255,255,.4);font-size:12px;line-height:1.5}
+/* Task panel */
+.task-list{display:flex;flex-direction:column;gap:10px}
+.task-item{background:#1a1a1f;border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:16px;display:flex;align-items:center;gap:14px}
+.task-item-avatar{width:36px;height:36px;border-radius:50%;object-fit:cover;flex-shrink:0}
+.task-item-info{flex:1;min-width:0}
+.task-item-name{color:rgba(255,255,255,.85);font-size:14px;font-weight:500;margin-bottom:3px}
+.task-item-desc{color:rgba(255,255,255,.45);font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.task-item-time{color:rgba(255,255,255,.35);font-size:11px;flex-shrink:0}
+.task-item-status{width:8px;height:8px;border-radius:50%;background:#4ade80;flex-shrink:0}
+/* Chat content switching */
+.chat-view{display:none;flex-direction:column}
+.chat-view.active{display:flex}
+
+/* Right panels - overlay style */
+.right-panel{position:absolute;right:0;top:0;bottom:0;width:0;background:#141414;border-left:1px solid #2a2a30;overflow:hidden;transition:width .3s ease;display:flex;flex-direction:column;z-index:10;box-shadow:-8px 0 24px rgba(0,0,0,.4)}
+.right-panel.open{width:300px}
+.rp-header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid #2a2a30;flex-shrink:0}
+.rp-header-left{display:flex;align-items:center;gap:8px}
+.rp-header-left svg{width:19px;height:19px;opacity:.7}
+.rp-header-title{color:rgba(255,255,255,.8);font-size:14px}
+.rp-close{background:0 0;border:none;color:rgba(255,255,255,.4);cursor:pointer;font-size:18px;width:18px;height:18px;display:flex;align-items:center;justify-content:center}
+.rp-close:hover{color:rgba(255,255,255,.7)}
+.rp-body{flex:1;overflow-y:auto;padding:16px}
+.rp-body::-webkit-scrollbar{width:4px}
+.rp-body::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:2px}
+.rp-agent-info{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+.rp-agent-avatar{width:48px;height:48px;border-radius:12px;object-fit:cover;flex-shrink:0}
+.rp-agent-meta{flex:1}
+.rp-agent-name{color:rgba(255,255,255,.8);font-size:16px;line-height:24px}
+.rp-agent-desc{color:#888;font-size:12px;line-height:16px}
+.rp-edit-btn{width:14px;height:14px;opacity:.4;cursor:pointer}
+.rp-section{margin-bottom:16px}
+.rp-section-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.rp-section-title{color:#e0e0e0;font-size:14px}
+.rp-section-edit{width:14px;height:14px;opacity:.4;cursor:pointer}
+.rp-card{background:#16161b;border-radius:14px;padding:16px}
+.rp-card p{font-size:14px;line-height:20px;margin-bottom:12px}
+.rp-card p:last-child{margin-bottom:0}
+.rp-card .label{color:#e0e0e0}
+.rp-card .value{color:#aaa}
+.rp-tags{display:flex;flex-wrap:wrap;gap:8px}
+.rp-tag{background:#16161b;border-radius:10px;padding:8px 12px;display:flex;align-items:center;gap:6px;font-size:12px;color:#aaa}
+
+/* Skill panel overlay */
+.skill-overlay{display:none;position:fixed;inset:0;z-index:200}
+.skill-overlay.show{display:block}
+.skill-overlay-bg{position:absolute;inset:0}
+.skill-panel{position:absolute;background:#1a1a1f;border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:16px;width:320px;box-shadow:0 12px 40px rgba(0,0,0,.6);right:80px;top:50%;transform:translateY(-50%)}
+.skill-panel-title{color:rgba(255,255,255,.8);font-size:14px;margin-bottom:12px;font-weight:500}
+.skill-panel-search{background:#111;border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:8px 12px;width:100%;color:rgba(255,255,255,.8);font-size:13px;outline:none;margin-bottom:12px}
+.skill-panel-search::placeholder{color:rgba(255,255,255,.3)}
+.skill-list{display:flex;flex-direction:column;gap:4px;max-height:240px;overflow-y:auto}
+.skill-list::-webkit-scrollbar{width:3px}
+.skill-list::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:2px}
+.skill-item{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:8px;cursor:pointer;color:rgba(255,255,255,.7);font-size:13px}
+.skill-item:hover{background:rgba(255,255,255,.06);color:rgba(255,255,255,.9)}
+.skill-item-dot{width:4.5px;height:4.5px;border-radius:50%;background:rgba(255,255,255,.4);flex-shrink:0}
+
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:0 0}
+::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:2px}
+</style>
+</head>
+<body>
+<div class="window">
+  <div class="tabbar">
+    <div class="tabbar-left">
+      <div class="nav-btns">
+        <button class="nav-btn"><img src="https://www.figma.com/api/mcp/asset/10d7bea5-5a56-4d2b-b01d-718b4bf03450" style="width:12px;height:12px;transform:rotate(180deg)" alt=""></button>
+        <button class="nav-btn"><img src="https://www.figma.com/api/mcp/asset/9a0a4410-6c90-4d45-a130-12dbeb17e15b" style="width:12px;height:12px" alt=""></button>
+      </div>
+      <div class="tabs-row">
+        <button class="tab-item"><span class="tab-icon" style="position:relative;width:18px;height:18px;display:inline-block"><img src="https://www.figma.com/api/mcp/asset/46d790eb-2c39-473e-857d-d3219ef30c3e" style="position:absolute;inset:0;width:100%;height:100%" alt=""><img src="https://www.figma.com/api/mcp/asset/542c68dd-b2b9-4023-ac02-1c4dc8497917" style="position:absolute;inset:0;width:100%;height:100%" alt=""><img src="https://www.figma.com/api/mcp/asset/20e70a91-8e34-437b-b2fd-eccfb15b7c18" style="position:absolute;inset:0;width:100%;height:100%" alt=""></span><span>主页</span></button>
+        <button class="tab-item"><span class="tab-icon" style="position:relative;width:18px;height:18px;display:inline-block"><img src="https://www.figma.com/api/mcp/asset/6e3132f8-d0b5-4f0e-b3a4-e835d3e2d5e2" style="position:absolute;inset:0;width:100%;height:100%" alt=""><img src="https://www.figma.com/api/mcp/asset/01d2d8e1-d4ad-47a5-8918-c3e323b1f7d6" style="position:absolute;inset:0;width:100%;height:100%" alt=""></span><span>设置</span></button>
+        <button class="tab-item active"><span class="tab-icon"><img src="https://www.figma.com/api/mcp/asset/5415f107-69d0-4b1d-afc7-7b8732a3c724" style="width:18px;height:18px" alt=""></span><span>天禧 Claw</span></button>
+      </div>
+    </div>
+    <div class="tabbar-right">
+      <div class="acct-pill"><img src="https://www.figma.com/api/mcp/asset/b3633606-12bb-4ea2-8e0b-53eb7ccd91a7" style="width:20px;height:20px" alt=""><svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M6 7.5l3 3 3-3" stroke="rgba(255,255,255,.5)" stroke-width="1.2" stroke-linecap="round"/></svg></div>
+      <button class="win-btn"><img src="https://www.figma.com/api/mcp/asset/028faf27-6b96-447f-94d4-3594093623fe" style="width:16px;height:16px" alt=""></button>
+      <button class="win-btn"><img src="https://www.figma.com/api/mcp/asset/6d596589-df45-4046-9eda-5cf85af53888" style="width:14px;height:1.4px" alt=""></button>
+      <button class="win-btn"><img src="https://www.figma.com/api/mcp/asset/db6e0cab-d062-4ec0-b693-154734c9a973" style="width:13px;height:13px" alt=""></button>
+      <button class="win-btn"><img src="https://www.figma.com/api/mcp/asset/20b361c0-88d8-4804-bde6-ca21fe085ec5" style="width:32px;height:32px" alt=""></button>
+    </div>
+  </div>
+  <div class="main">
+    <div class="sidebar">
+      <div class="sb-top">
+        <div class="sb-search" onclick="focusSearch(this)"><img src="https://www.figma.com/api/mcp/asset/a74714c5-edd4-4443-b0c4-e648f53c5c23" style="width:14px;height:14px;flex-shrink:0" alt=""><div class="sb-search-cursor"></div><span>搜索</span></div>
+        <button class="sb-newagent"><img src="https://www.figma.com/api/mcp/asset/3575a4fc-252d-4cf1-9809-51e0f6e9e269" style="width:12px;height:12px;flex-shrink:0" alt=""><span>新建一只虾</span></button>
+      </div>
+      <div class="agent-list">
+        <div class="agent-group">
+          <div class="agent-hdr">
+            <div class="agent-hdr-inner"><div class="agent-avatar tianxi"><img src="https://www.figma.com/api/mcp/asset/54650ace-c6d7-4679-8df4-b36799a401a3" style="width:26px;height:26px;border-radius:6px;object-fit:cover;"></div><span class="agent-name">日常虾</span></div>
+            <button class="agent-more" onclick="toggleDropdown(event)">···</button>
+            <div class="agent-expand" onclick="toggleChatItems(this)"><img src="https://www.figma.com/api/mcp/asset/2b5a9402-2a57-410f-b538-1a55ae39f298" style="width:16px;height:16px" alt=""></div>
+            <div class="agent-dropdown">
+              <div class="agent-dropdown-item" onclick="openAgentDetail('tianxi')"><svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="5" r="2.5" stroke="currentColor" stroke-width="1.2"/><path d="M3 14c0-2.5 2-4 5-4s5 1.5 5 4" stroke="currentColor" stroke-width="1.2"/></svg>agent详情</div>
+              <div class="agent-dropdown-item"><svg viewBox="0 0 16 16" fill="none"><path d="M4 4h8v8H4z" stroke="currentColor" stroke-width="1.2" rx="1"/></svg>编辑</div>
+              <div class="agent-dropdown-item"><svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.2"/></svg>分享</div>
+            </div>
+          </div>
+          <div class="chat-items">
+            <div class="chat-item active" onclick="switchChat(this,'chat-tianxi-news')"><img src="https://www.figma.com/api/mcp/asset/d35ad1cd-bdae-418f-bb18-42f15004ae13" style="width:24px;height:24px;flex-shrink:0" alt=""><span>每天上午10点为我推送今天的新闻热点</span></div>
+            <div class="chat-item" onclick="switchChat(this,'chat-tianxi-weekly')"><img src="https://www.figma.com/api/mcp/asset/d35ad1cd-bdae-418f-bb18-42f15004ae13" style="width:24px;height:24px;flex-shrink:0" alt=""><span>每周一上午9点为我整理周报</span></div>
+          </div>
+        </div>
+        <div class="sb-divider"></div>
+        <div class="agent-group">
+          <div class="agent-hdr">
+            <div class="agent-hdr-inner"><div class="agent-avatar work"><img src="https://www.figma.com/api/mcp/asset/5383d3ec-241f-4d85-aa30-831c3512425a" style="width:34px;height:34px;border-radius:50%;object-fit:cover;"></div><span class="agent-name">工作虾</span></div>
+            <button class="agent-more" onclick="toggleDropdown(event)">···</button>
+            <div class="agent-expand" onclick="toggleChatItems(this)"><img src="https://www.figma.com/api/mcp/asset/2b5a9402-2a57-410f-b538-1a55ae39f298" style="width:16px;height:16px" alt=""></div>
+            <div class="agent-dropdown">
+              <div class="agent-dropdown-item" onclick="openAgentDetail('work')"><svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="5" r="2.5" stroke="currentColor" stroke-width="1.2"/><path d="M3 14c0-2.5 2-4 5-4s5 1.5 5 4" stroke="currentColor" stroke-width="1.2"/></svg>agent详情</div>
+              <div class="agent-dropdown-item"><svg viewBox="0 0 16 16" fill="none"><path d="M4 4h8v8H4z" stroke="currentColor" stroke-width="1.2" rx="1"/></svg>编辑</div>
+            </div>
+          </div>
+          <div class="chat-items">
+            <div class="chat-item" onclick="switchChat(this,'chat-work-weekly')"><img src="https://www.figma.com/api/mcp/asset/28cf582b-20c8-4cfe-9f4c-ed8584da07f1" style="width:24px;height:24px;flex-shrink:0" alt=""><span>写一份周报总结</span></div>
+          </div>
+        </div>
+        <div class="sb-divider"></div>
+        <div class="agent-group">
+          <div class="agent-hdr">
+            <div class="agent-hdr-inner"><div class="agent-avatar life"><img src="https://www.figma.com/api/mcp/asset/8ff33e6f-712a-4dc2-97e4-2d5e8a9574d6" style="width:34px;height:34px;border-radius:50%;object-fit:cover;"></div><span class="agent-name">学习虾</span></div>
+            <button class="agent-more" onclick="toggleDropdown(event)">···</button>
+            <div class="agent-expand" onclick="toggleChatItems(this)"><img src="https://www.figma.com/api/mcp/asset/2b5a9402-2a57-410f-b538-1a55ae39f298" style="width:16px;height:16px" alt=""></div>
+            <div class="agent-dropdown">
+              <div class="agent-dropdown-item" onclick="openAgentDetail('life')"><svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="5" r="2.5" stroke="currentColor" stroke-width="1.2"/><path d="M3 14c0-2.5 2-4 5-4s5 1.5 5 4" stroke="currentColor" stroke-width="1.2"/></svg>agent详情</div>
+              <div class="agent-dropdown-item"><svg viewBox="0 0 16 16" fill="none"><path d="M4 4h8v8H4z" stroke="currentColor" stroke-width="1.2" rx="1"/></svg>编辑</div>
+            </div>
+          </div>
+          <div class="chat-items">
+            <div class="chat-item" onclick="switchChat(this,'chat-life-news')"><img src="https://www.figma.com/api/mcp/asset/28cf582b-20c8-4cfe-9f4c-ed8584da07f1" style="width:24px;height:24px;flex-shrink:0" alt=""><span>每天上午10点为我推送今天的新闻热点</span></div>
+            <div class="chat-item" onclick="switchChat(this,'chat-life-weekly')"><img src="https://www.figma.com/api/mcp/asset/28cf582b-20c8-4cfe-9f4c-ed8584da07f1" style="width:24px;height:24px;flex-shrink:0" alt=""><span>每周一上午9点为我整理周报</span></div>
+          </div>
+        </div>
+        <div class="sb-divider"></div>
+      </div>
+      <div class="sb-footer">
+        <div class="sb-footer-item" onclick="openOverlay('skillPanel',this)" style="cursor:pointer"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M10.5 6.5a4 4 0 014-4h0a4 4 0 014 4v0a4 4 0 01-4 4h-1v2h-2v-2h-1a4 4 0 01-4-4v0a4 4 0 014-4h0" stroke="rgba(255,255,255,.5)" stroke-width="1.3" stroke-linecap="round"/><rect x="8" y="14" width="8" height="5" rx="1" stroke="rgba(255,255,255,.5)" stroke-width="1.3"/></svg><span>技能广场</span></div>
+        <div class="sb-footer-item" onclick="openOverlay('taskPanel',this)" style="cursor:pointer"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="13" r="7" stroke="rgba(255,255,255,.5)" stroke-width="1.3"/><path d="M12 10v3l2 2" stroke="rgba(255,255,255,.5)" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/><path d="M7.5 5l-2-1.5M16.5 5l2-1.5" stroke="rgba(255,255,255,.5)" stroke-width="1.3" stroke-linecap="round"/></svg><span>定时任务</span></div>
+        <div class="sb-footer-item"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="3" stroke="rgba(255,255,255,.5)" stroke-width="1.3"/><path d="M12 5v2M12 17v2M5 12h2M17 12h2M7.05 7.05l1.41 1.41M15.54 15.54l1.41 1.41M7.05 16.95l1.41-1.41M15.54 8.46l1.41-1.41" stroke="rgba(255,255,255,.5)" stroke-width="1.3" stroke-linecap="round"/></svg><span>设置</span></div>
+      </div>
+    </div>
+    <div class="content" id="contentArea">
+      <img class="content-bg-glow" src="https://www.figma.com/api/mcp/asset/2543a827-baa3-4f91-a73c-6e69793a5b54" alt="">
+      <div class="content-scroll" id="contentScroll">
+        <div id="chat-tianxi-news" class="chat-view active">
+        <div style="display:flex;justify-content:flex-end;margin-bottom:16px;padding:4px 0"><img class="layout-right-btn" src="https://www.figma.com/api/mcp/asset/3abeaf8a-5497-45b0-b7fe-47cc5ae39552" alt="" onclick="toggleFilePanel()"></div>
+        <div class="user-bubble"><p>每天上午10点为我推送今天的新闻热点</p></div>
+        <div class="exec-area">
+          <div class="exec-header" onclick="toggleTimeline(this)"><span class="exec-title">已完成执行 (1分1秒)</span><svg width="7" height="4" viewBox="0 0 7 4" fill="none"><path d="M.5.5L3.5 3 6.5.5" stroke="rgba(255,255,255,.48)" stroke-width="1" stroke-linecap="round"/></svg></div>
+          <div class="timeline">
+            <div class="tl-step"><div class="tl-step-row"><img class="tl-icon" src="https://www.figma.com/api/mcp/asset/0e05b5fd-b318-4457-a2b0-459a311fe23a" style="width:16px;height:16px" alt=""><span class="tl-text">查看了 SKILL.md</span></div></div>
+            <div class="tl-step"><p class="tl-text-full">好的，我来设置每天上午10点推送新闻热点。先看一下新闻技能怎么用。</p></div>
+            <div class="tl-step"><div class="tl-step-row"><img class="tl-icon" src="https://www.figma.com/api/mcp/asset/0e05b5fd-b318-4457-a2b0-459a311fe23a" style="width:16px;height:16px" alt=""><span class="tl-text">查看了 SKILL.md</span></div></div>
+            <div class="tl-step"><div class="tl-step-row"><img class="tl-icon" src="https://www.figma.com/api/mcp/asset/36b1f1ff-4c79-4838-a098-7395f8c16500" style="width:14px;height:14px" alt=""><span class="tl-text">执行了命令 curl -s "https://feeds.bbci.co.uk/news/rss.xml" | grep -E ...</span></div></div>
+            <div class="tl-step"><div class="tl-step-row"><img class="tl-icon" src="https://www.figma.com/api/mcp/asset/1ae8bc71-4663-469c-9587-e1d2d0c70037" style="width:13px;height:13px" alt=""><span class="tl-text">执行了 https://cloud.tencent.com/developer/article/2640867</span></div></div>
+          </div>
+        </div>
+        <div class="ai-response">
+          <p class="ai-response-text">✅ <strong>每日 AI 新闻推送已设置成功！</strong></p>
+          <div class="ai-divider"></div>
+          <p class="ai-section-title">📋 任务详情</p>
+          <table class="info-table">
+            <tr><td>📅 时间</td><td>每天下午 <strong>18:00</strong>（北京时间）</td></tr>
+            <tr><td>🤖 模型</td><td>qwen3.5-plus</td></tr>
+            <tr><td>📬 推送方式</td><td>飞书消息直达</td></tr>
+            <tr><td>⏱️ 超时限制</td><td>5 分钟</td></tr>
+            <tr><td>🔔 状态</td><td>✅ 已启用</td></tr>
+          </table>
+          <div class="report-section">
+            <p class="report-title">📰 新闻来源</p>
+            <p class="report-subtitle">默认抓取以下渠道：</p>
+            <div class="report-list">
+              <div class="report-item"><span class="report-dot"></span><span class="report-item-text">Hacker News - 技术前沿</span></div>
+              <div class="report-item"><span class="report-dot"></span><span class="report-item-text">Twitter/X - AI 圈热点讨论</span></div>
+              <div class="report-item"><span class="report-dot"></span><span class="report-item-text">GitHub Trending - 热门 AI 项目</span></div>
+              <div class="report-item"><span class="report-dot"></span><span class="report-item-text">AI 技术博客 / 资讯站</span></div>
+            </div>
+          </div>
+          <div class="report-section">
+            <p class="report-title">📝 输出格式</p>
+            <p class="report-subtitle">每条新闻包含：</p>
+            <div class="report-list">
+              <div class="report-item"><span class="report-dot"></span><span class="report-item-text">标题 + 1-2 句概括</span></div>
+              <div class="report-item"><span class="report-dot"></span><span class="report-item-text">相关链接</span></div>
+              <div class="report-item"><span class="report-dot"></span><span class="report-item-text">按重要性排序</span></div>
+            </div>
+          </div>
+          <div class="report-section">
+            <p class="report-title">🔧 管理命令</p>
+            <p class="report-subtitle">你可以随时对我说：</p>
+            <div class="report-list">
+              <div class="report-item"><span class="report-dot"></span><span class="report-item-text">"暂停推送" — 临时关闭</span></div>
+              <div class="report-item"><span class="report-dot"></span><span class="report-item-text">"恢复推送" — 重新开启</span></div>
+              <div class="report-item"><span class="report-dot"></span><span class="report-item-text">"改为每周一推送" — 调整频率</span></div>
+              <div class="report-item"><span class="report-dot"></span><span class="report-item-text">"增加来源：36氪" — 自定义来源</span></div>
+            </div>
+          </div>
+        </div>
+        <!-- Report file card -->
+        <div class="report-card">
+          <div class="report-card-header">
+            <div class="report-card-title"><div class="pdf-icon">PDF</div><span>人工智能背景下的设计趋势洞察报告</span></div>
+            <div class="report-card-actions">
+              <button title="复制"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="5" y="5" width="8" height="8" rx="1.5" stroke="currentColor" stroke-width="1.2"/><path d="M3 11V3.5A.5.5 0 013.5 3H11" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg></button>
+              <button title="全屏"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M3 6V3h3M13 6V3h-3M3 10v3h3M13 10v3h-3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+              <button class="dl-btn">下载<svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 2v7M4 7l3 3 3-3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 11h10" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg></button>
+            </div>
+          </div>
+          <div class="report-card-body">
+            <img src="https://www.figma.com/api/mcp/asset/840697e8-f01f-4168-abbc-456bad89d746" alt="人工智能背景下的设计趋势洞察报告">
+            <div class="report-card-scrollbar"></div>
+          </div>
+        </div>
+        </div><!-- end chat-tianxi-news -->
+
+        <!-- 天禧Claw 周报 -->
+        <div id="chat-tianxi-weekly" class="chat-view">
+          <div style="display:flex;justify-content:flex-end;margin-bottom:16px;padding:4px 0"><img class="layout-right-btn" src="https://www.figma.com/api/mcp/asset/3abeaf8a-5497-45b0-b7fe-47cc5ae39552" alt="" onclick="toggleFilePanel()"></div>
+          <div class="user-bubble"><p>每周一上午9点为我整理周报</p></div>
+          <div class="exec-area">
+            <div class="exec-header" onclick="toggleTimeline(this)"><span class="exec-title">已完成执行 (45秒)</span><svg width="7" height="4" viewBox="0 0 7 4" fill="none"><path d="M.5.5L3.5 3 6.5.5" stroke="rgba(255,255,255,.48)" stroke-width="1" stroke-linecap="round"/></svg></div>
+            <div class="timeline">
+              <div class="tl-step"><div class="tl-step-row"><img class="tl-icon" src="https://www.figma.com/api/mcp/asset/0e05b5fd-b318-4457-a2b0-459a311fe23a" style="width:16px;height:16px" alt=""><span class="tl-text">查看了 SKILL.md</span></div></div>
+              <div class="tl-step"><p class="tl-text-full">好的，我来设置每周一上午9点自动整理周报的定时任务。</p></div>
+              <div class="tl-step"><div class="tl-step-row"><img class="tl-icon" src="https://www.figma.com/api/mcp/asset/36b1f1ff-4c79-4838-a098-7395f8c16500" style="width:14px;height:14px" alt=""><span class="tl-text">执行了命令 openclaw cron create --schedule "0 9 * * 1"</span></div></div>
+            </div>
+          </div>
+          <div class="ai-response">
+            <p class="ai-response-text">✅ <strong>每周周报整理任务已设置成功！</strong></p>
+            <div class="ai-divider"></div>
+            <p class="ai-section-title">📋 任务详情</p>
+            <table class="info-table">
+              <tr><td>📅 时间</td><td>每周一上午 <strong>09:00</strong>（北京时间）</td></tr>
+              <tr><td>🤖 模型</td><td>qwen3.5-plus</td></tr>
+              <tr><td>📬 推送方式</td><td>飞书消息直达</td></tr>
+              <tr><td>⏱️ 超时限制</td><td>10 分钟</td></tr>
+              <tr><td>🔔 状态</td><td>✅ 已启用</td></tr>
+            </table>
+            <div class="report-section">
+              <p class="report-title">📝 周报内容</p>
+              <p class="report-subtitle">每周报告包含：</p>
+              <div class="report-list">
+                <div class="report-item"><span class="report-dot"></span><span class="report-item-text">本周完成的主要工作事项</span></div>
+                <div class="report-item"><span class="report-dot"></span><span class="report-item-text">遇到的问题与解决方案</span></div>
+                <div class="report-item"><span class="report-dot"></span><span class="report-item-text">下周计划与目标</span></div>
+              </div>
+            </div>
+          </div>
+        </div><!-- end chat-tianxi-weekly -->
+
+        <!-- 工作虾 周报总结 -->
+        <div id="chat-work-weekly" class="chat-view">
+          <div style="display:flex;justify-content:flex-end;margin-bottom:16px;padding:4px 0"><img class="layout-right-btn" src="https://www.figma.com/api/mcp/asset/3abeaf8a-5497-45b0-b7fe-47cc5ae39552" alt="" onclick="toggleFilePanel()"></div>
+          <div class="user-bubble"><p>写一份周报总结</p></div>
+          <div class="exec-area">
+            <div class="exec-header" onclick="toggleTimeline(this)"><span class="exec-title">已完成执行 (2分18秒)</span><svg width="7" height="4" viewBox="0 0 7 4" fill="none"><path d="M.5.5L3.5 3 6.5.5" stroke="rgba(255,255,255,.48)" stroke-width="1" stroke-linecap="round"/></svg></div>
+            <div class="timeline">
+              <div class="tl-step"><div class="tl-step-row"><img class="tl-icon" src="https://www.figma.com/api/mcp/asset/0e05b5fd-b318-4457-a2b0-459a311fe23a" style="width:16px;height:16px" alt=""><span class="tl-text">查看了工作记录文档</span></div></div>
+              <div class="tl-step"><p class="tl-text-full">好的，我来帮你整理本周的工作内容，生成一份结构清晰的周报。</p></div>
+              <div class="tl-step"><div class="tl-step-row"><img class="tl-icon" src="https://www.figma.com/api/mcp/asset/36b1f1ff-4c79-4838-a098-7395f8c16500" style="width:14px;height:14px" alt=""><span class="tl-text">分析了本周任务完成情况</span></div></div>
+              <div class="tl-step"><div class="tl-step-row"><img class="tl-icon" src="https://www.figma.com/api/mcp/asset/1ae8bc71-4663-469c-9587-e1d2d0c70037" style="width:13px;height:13px" alt=""><span class="tl-text">生成了周报草稿</span></div></div>
+            </div>
+          </div>
+          <div class="ai-response">
+            <p class="ai-response-text">✅ <strong>本周周报已生成！</strong></p>
+            <div class="ai-divider"></div>
+            <p class="ai-section-title">📋 本周工作总结（2026年第14周）</p>
+            <table class="info-table">
+              <tr><td>✅ 完成项目</td><td>天禧 Claw 原型设计 v2.0</td></tr>
+              <tr><td>🔄 进行中</td><td>技能广场功能开发</td></tr>
+              <tr><td>📊 工作时长</td><td>本周 <strong>42</strong> 小时</td></tr>
+              <tr><td>🎯 目标达成</td><td>85%</td></tr>
+            </table>
+            <div class="report-section">
+              <p class="report-title">🔧 下周计划</p>
+              <div class="report-list">
+                <div class="report-item"><span class="report-dot"></span><span class="report-item-text">完成技能广场 UI 开发</span></div>
+                <div class="report-item"><span class="report-dot"></span><span class="report-item-text">对接定时任务后端接口</span></div>
+                <div class="report-item"><span class="report-dot"></span><span class="report-item-text">完成用户测试并收集反馈</span></div>
+              </div>
+            </div>
+          </div>
+        </div><!-- end chat-work-weekly -->
+
+        <!-- 生活虾 新闻 -->
+        <div id="chat-life-news" class="chat-view">
+          <div style="display:flex;justify-content:flex-end;margin-bottom:16px;padding:4px 0"><img class="layout-right-btn" src="https://www.figma.com/api/mcp/asset/3abeaf8a-5497-45b0-b7fe-47cc5ae39552" alt="" onclick="toggleFilePanel()"></div>
+          <div class="user-bubble"><p>每天上午10点为我推送今天的新闻热点</p></div>
+          <div class="exec-area">
+            <div class="exec-header" onclick="toggleTimeline(this)"><span class="exec-title">已完成执行 (38秒)</span><svg width="7" height="4" viewBox="0 0 7 4" fill="none"><path d="M.5.5L3.5 3 6.5.5" stroke="rgba(255,255,255,.48)" stroke-width="1" stroke-linecap="round"/></svg></div>
+            <div class="timeline">
+              <div class="tl-step"><div class="tl-step-row"><img class="tl-icon" src="https://www.figma.com/api/mcp/asset/0e05b5fd-b318-4457-a2b0-459a311fe23a" style="width:16px;height:16px" alt=""><span class="tl-text">查看了 SKILL.md</span></div></div>
+              <div class="tl-step"><p class="tl-text-full">好的，我来帮你设置每天上午10点推送生活热点资讯的定时任务。</p></div>
+              <div class="tl-step"><div class="tl-step-row"><img class="tl-icon" src="https://www.figma.com/api/mcp/asset/36b1f1ff-4c79-4838-a098-7395f8c16500" style="width:14px;height:14px" alt=""><span class="tl-text">执行了命令 openclaw cron create --schedule "0 10 * * *"</span></div></div>
+            </div>
+          </div>
+          <div class="ai-response">
+            <p class="ai-response-text">✅ <strong>每日生活资讯推送已设置成功！</strong></p>
+            <div class="ai-divider"></div>
+            <p class="ai-section-title">📋 任务详情</p>
+            <table class="info-table">
+              <tr><td>📅 时间</td><td>每天上午 <strong>10:00</strong>（北京时间）</td></tr>
+              <tr><td>🤖 模型</td><td>qwen3.5-plus</td></tr>
+              <tr><td>📬 推送方式</td><td>飞书消息直达</td></tr>
+              <tr><td>⏱️ 超时限制</td><td>5 分钟</td></tr>
+              <tr><td>🔔 状态</td><td>✅ 已启用</td></tr>
+            </table>
+            <div class="report-section">
+              <p class="report-title">🌟 推送内容</p>
+              <p class="report-subtitle">每日资讯包含：</p>
+              <div class="report-list">
+                <div class="report-item"><span class="report-dot"></span><span class="report-item-text">今日天气与出行建议</span></div>
+                <div class="report-item"><span class="report-dot"></span><span class="report-item-text">社会热点与娱乐资讯</span></div>
+                <div class="report-item"><span class="report-dot"></span><span class="report-item-text">健康生活小贴士</span></div>
+              </div>
+            </div>
+          </div>
+        </div><!-- end chat-life-news -->
+
+        <!-- 生活虾 周报 -->
+        <div id="chat-life-weekly" class="chat-view">
+          <div style="display:flex;justify-content:flex-end;margin-bottom:16px;padding:4px 0"><img class="layout-right-btn" src="https://www.figma.com/api/mcp/asset/3abeaf8a-5497-45b0-b7fe-47cc5ae39552" alt="" onclick="toggleFilePanel()"></div>
+          <div class="user-bubble"><p>每周一上午9点为我整理周报</p></div>
+          <div class="exec-area">
+            <div class="exec-header" onclick="toggleTimeline(this)"><span class="exec-title">已完成执行 (52秒)</span><svg width="7" height="4" viewBox="0 0 7 4" fill="none"><path d="M.5.5L3.5 3 6.5.5" stroke="rgba(255,255,255,.48)" stroke-width="1" stroke-linecap="round"/></svg></div>
+            <div class="timeline">
+              <div class="tl-step"><div class="tl-step-row"><img class="tl-icon" src="https://www.figma.com/api/mcp/asset/0e05b5fd-b318-4457-a2b0-459a311fe23a" style="width:16px;height:16px" alt=""><span class="tl-text">查看了生活记录</span></div></div>
+              <div class="tl-step"><p class="tl-text-full">好的，我来帮你设置每周一整理生活周报的定时任务，记录你的生活点滴。</p></div>
+              <div class="tl-step"><div class="tl-step-row"><img class="tl-icon" src="https://www.figma.com/api/mcp/asset/36b1f1ff-4c79-4838-a098-7395f8c16500" style="width:14px;height:14px" alt=""><span class="tl-text">执行了命令 openclaw cron create --schedule "0 9 * * 1"</span></div></div>
+            </div>
+          </div>
+          <div class="ai-response">
+            <p class="ai-response-text">✅ <strong>每周生活周报任务已设置成功！</strong></p>
+            <div class="ai-divider"></div>
+            <p class="ai-section-title">📋 任务详情</p>
+            <table class="info-table">
+              <tr><td>📅 时间</td><td>每周一上午 <strong>09:00</strong>（北京时间）</td></tr>
+              <tr><td>🤖 模型</td><td>qwen3.5-plus</td></tr>
+              <tr><td>📬 推送方式</td><td>飞书消息直达</td></tr>
+              <tr><td>⏱️ 超时限制</td><td>5 分钟</td></tr>
+              <tr><td>🔔 状态</td><td>✅ 已启用</td></tr>
+            </table>
+            <div class="report-section">
+              <p class="report-title">🏠 周报内容</p>
+              <p class="report-subtitle">每周生活总结包含：</p>
+              <div class="report-list">
+                <div class="report-item"><span class="report-dot"></span><span class="report-item-text">本周运动与健康数据</span></div>
+                <div class="report-item"><span class="report-dot"></span><span class="report-item-text">消费记录与预算分析</span></div>
+                <div class="report-item"><span class="report-dot"></span><span class="report-item-text">本周心情与生活感悟</span></div>
+              </div>
+            </div>
+          </div>
+        </div><!-- end chat-life-weekly -->
+
+      </div>
+      <!-- Input with blur overlay -->
+      <div class="input-wrap">
+        <div class="input-blur"></div>
+        <div style="position:relative">
+          <div class="input-glow"></div>
+          <div class="input-box">
+            <div class="input-textarea"><div class="input-cursor"></div><span class="input-placeholder">输入任务描述或提问任何问题</span></div>
+            <div class="input-toolbar"><div class="tool-icons"><div class="tool-btns"><div class="icon-group">
+              <button class="icon-btn"><svg width="28" height="28" viewBox="0 0 28 28" fill="none"><path d="M8.5 5.5h7l4 4v13a1 1 0 01-1 1h-10a1 1 0 01-1-1v-16a1 1 0 011-1z" stroke="rgba(255,255,255,.7)" stroke-width="1.2"/><path d="M15.5 5.5v4h4" stroke="rgba(255,255,255,.7)" stroke-width="1.2"/><path d="M11 15h6M11 18h4" stroke="rgba(255,255,255,.7)" stroke-width="1.2" stroke-linecap="round"/></svg></button>
+              <button class="icon-btn"><svg width="28" height="28" viewBox="0 0 28 28" fill="none"><rect x="7" y="7" width="14" height="14" rx="2" stroke="rgba(255,255,255,.7)" stroke-width="1.2"/><circle cx="11.5" cy="11.5" r="1.5" fill="rgba(255,255,255,.7)"/><path d="M7 18l3.5-3.5a1 1 0 011.4 0L14 16.5l2.5-2.5a1 1 0 011.4 0L21 17" stroke="rgba(255,255,255,.7)" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+              <button class="icon-btn"><svg width="28" height="28" viewBox="0 0 28 28" fill="none"><rect x="11" y="6" width="6" height="10" rx="3" stroke="rgba(255,255,255,.7)" stroke-width="1.2"/><path d="M8 14.5a6 6 0 0012 0" stroke="rgba(255,255,255,.7)" stroke-width="1.2" stroke-linecap="round"/><path d="M14 20.5v2M12 22.5h4" stroke="rgba(255,255,255,.7)" stroke-width="1.2" stroke-linecap="round"/></svg></button>
+            </div><div class="tool-divider"></div></div>
+            <div class="send-btn"><img src="https://www.figma.com/api/mcp/asset/1d70307b-60ce-4ab6-9125-991977d2384f" style="width:16px;height:16px" alt=""></div>
+            </div></div>
+          </div>
+        </div>
+      </div>
+      <!-- File Panel -->
+      <div class="file-panel" id="filePanel">
+        <div class="fp-icon-strip">
+          <img class="layout-right-btn" src="https://www.figma.com/api/mcp/asset/3abeaf8a-5497-45b0-b7fe-47cc5ae39552" alt="" onclick="toggleFilePanel()">
+        </div>
+        <div class="fp-body">
+        <div class="fp-tabs">
+          <div class="fp-tab active" onclick="switchFpTab(this,'artifacts')">产物</div>
+          <div class="fp-tab" onclick="switchFpTab(this,'files')">全部文件</div>
+        </div>
+        <div class="fp-content active" id="fpArtifacts">
+          <div class="fp-sec">
+            <div class="fp-sec-hdr"><span class="fp-sec-title">Tasks</span><span class="fp-sec-arrow">▴</span></div>
+            <div class="fp-sec-label">产物</div>
+            <div class="fp-task selected">
+              <div class="fp-task-icon"><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M3 7l3 3 5-5" stroke="#a78bfa" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+              <span class="fp-task-name">任务列表</span>
+            </div>
+          </div>
+          <div class="fp-divider"></div>
+          <div class="fp-sec">
+            <div class="fp-sec-hdr"><span class="fp-sec-title">文件变更</span><span class="fp-sec-arrow">▴</span></div>
+            <div class="fp-file"><div class="fp-file-icon css">#</div><div class="fp-file-meta"><div class="fp-file-name">globals.css</div><div class="fp-file-path">src/app/globals.css</div></div><span class="fp-file-badge">+12</span></div>
+            <div class="fp-file"><div class="fp-file-icon tsx">⚙</div><div class="fp-file-meta"><div class="fp-file-name">TaskList.tsx</div><div class="fp-file-path">src/components/TaskList.tsx</div></div><span class="fp-file-badge">+86</span></div>
+            <div class="fp-file"><div class="fp-file-icon tsx">⚙</div><div class="fp-file-meta"><div class="fp-file-name">TaskItem.tsx</div><div class="fp-file-path">src/components/TaskItem.tsx</div></div><span class="fp-file-badge">+45</span></div>
+            <div class="fp-file"><div class="fp-file-icon tsx">⚙</div><div class="fp-file-meta"><div class="fp-file-name">page.tsx</div><div class="fp-file-path">src/app/page.tsx</div></div><span class="fp-file-badge">+23</span></div>
+          </div>
+          <div class="fp-expand"><a>展开更多 (15)</a></div>
+        </div>
+        <div class="fp-content" id="fpFiles">
+          <div class="fp-tree" style="display:block">
+            <div class="fp-label">工作空间</div>
+            <div class="fp-row"><span class="fp-icon">▶</span><span class="fp-icon">📁</span>.workbuddy</div>
+            <div class="fp-row indent1"><span class="fp-icon">▶</span><span class="fp-icon">📁</span>memory</div>
+            <div class="fp-row indent2"><span class="fp-dot"></span>2026-03-31.md</div>
+            <div class="fp-row indent2"><span class="fp-dot"></span>MEMORY.md</div>
+            <div class="fp-row"><span class="fp-icon json">{}</span>settings.local.json</div>
+            <div class="fp-row"><span class="fp-icon">▶</span><span class="fp-icon">📁</span>src</div>
+            <div class="fp-row selected"><span class="fp-icon js">JS</span>next.config.js</div>
+            <div class="fp-row"><span class="fp-icon json">{}</span>package.json</div>
+            <div class="fp-row"><span class="fp-icon json">{}</span>tsconfig.json</div>
+          </div>
+          <div class="fp-hint">选择文件以查看内容</div>
+        </div>
+        </div>
+      </div>
+      <!-- Skill Square Overlay -->
+      <div class="overlay-panel" id="skillPanel">
+        <div class="overlay-hdr"><span class="overlay-title">技能广场</span></div>
+        <div class="overlay-body">
+          <input class="skill-search" placeholder="搜索技能...">
+          <div class="skill-grid">
+            <div class="skill-card"><div class="skill-card-icon">📰</div><div class="skill-card-name">热点资讯汇总</div><div class="skill-card-desc">自动抓取每日热点新闻，按重要性排序推送</div></div>
+            <div class="skill-card"><div class="skill-card-icon">📝</div><div class="skill-card-name">周报自动生成</div><div class="skill-card-desc">根据本周工作记录，一键生成结构化周报</div></div>
+            <div class="skill-card"><div class="skill-card-icon">📄</div><div class="skill-card-name">文档智能总结</div><div class="skill-card-desc">上传文档，自动提取关键信息和摘要</div></div>
+            <div class="skill-card"><div class="skill-card-icon">🎬</div><div class="skill-card-name">视频脚本生成</div><div class="skill-card-desc">输入主题，自动生成完整视频脚本</div></div>
+            <div class="skill-card"><div class="skill-card-icon">📊</div><div class="skill-card-name">数据分析助手</div><div class="skill-card-desc">上传数据文件，自动分析并生成可视化图表</div></div>
+            <div class="skill-card"><div class="skill-card-icon">🔍</div><div class="skill-card-name">智能搜索</div><div class="skill-card-desc">跨平台搜索，整合多源信息给出精准答案</div></div>
+            <div class="skill-card"><div class="skill-card-icon">📅</div><div class="skill-card-name">日程规划</div><div class="skill-card-desc">智能分析任务优先级，自动安排最优日程</div></div>
+            <div class="skill-card"><div class="skill-card-icon">✉️</div><div class="skill-card-name">邮件助手</div><div class="skill-card-desc">一键起草专业邮件，支持多种语气风格</div></div>
+            <div class="skill-card"><div class="skill-card-icon">🌐</div><div class="skill-card-name">网页内容提取</div><div class="skill-card-desc">输入网址，自动提取并整理页面核心内容</div></div>
+          </div>
+        </div>
+      </div>
+      <!-- Task List Overlay -->
+      <div class="overlay-panel" id="taskPanel">
+        <div class="overlay-hdr"><span class="overlay-title">定时任务</span></div>
+        <div class="overlay-body">
+          <div class="task-list">
+            <div class="task-item"><img class="task-item-avatar" src="https://www.figma.com/api/mcp/asset/8ff33e6f-712a-4dc2-97e4-2d5e8a9574d6" alt=""><div class="task-item-info"><div class="task-item-name">生活虾 · 每日新闻推送</div><div class="task-item-desc">每天上午10点推送今日热点新闻，飞书消息直达</div></div><div class="task-item-time">每天 10:00</div><div class="task-item-status"></div></div>
+            <div class="task-item"><img class="task-item-avatar" src="https://www.figma.com/api/mcp/asset/5383d3ec-241f-4d85-aa30-831c3512425a" alt=""><div class="task-item-info"><div class="task-item-name">工作虾 · 周报整理</div><div class="task-item-desc">每周一上午9点自动整理上周工作内容，生成周报</div></div><div class="task-item-time">每周一 09:00</div><div class="task-item-status"></div></div>
+            <div class="task-item"><img class="task-item-avatar" src="https://www.figma.com/api/mcp/asset/54650ace-c6d7-4679-8df4-b36799a401a3" style="border-radius:6px" alt=""><div class="task-item-info"><div class="task-item-name">天禧Claw · AI 新闻推送</div><div class="task-item-desc">每天下午18点推送 AI 领域热点，包含产品发布、技术突破</div></div><div class="task-item-time">每天 18:00</div><div class="task-item-status"></div></div>
+            <div class="task-item"><img class="task-item-avatar" src="https://www.figma.com/api/mcp/asset/8ff33e6f-712a-4dc2-97e4-2d5e8a9574d6" alt=""><div class="task-item-info"><div class="task-item-name">生活虾 · 周报整理</div><div class="task-item-desc">每周一上午9点整理生活记录，生成生活周报</div></div><div class="task-item-time">每周一 09:00</div><div class="task-item-status" style="background:#f59e0b"></div></div>
+          </div>
+        </div>
+      </div>
+      <!-- Agent Detail Panel -->
+      <div class="right-panel" id="rightPanel">
+        <div class="rp-header"><div class="rp-header-left"><svg viewBox="0 0 19 19" fill="none"><rect x="1" y="1" width="17" height="17" rx="4" stroke="rgba(255,255,255,.6)" stroke-width="1.2"/><circle cx="9.5" cy="7" r="2.5" stroke="rgba(255,255,255,.6)" stroke-width="1.1"/><path d="M4.5 16c0-2.5 2-4 5-4s5 1.5 5 4" stroke="rgba(255,255,255,.6)" stroke-width="1.1"/></svg><span class="rp-header-title">Agent 详情</span></div><button class="rp-close" onclick="closePanel('rightPanel')">✕</button></div>
+        <div class="rp-body">
+          <div class="rp-agent-info"><img class="rp-agent-avatar" src="https://www.figma.com/api/mcp/asset/3edf05f7-33ac-4d56-821a-89ee76f38cd4" alt=""><div class="rp-agent-meta"><div class="rp-agent-name">生活虾</div><div class="rp-agent-desc">你的生活日常万能小帮手</div></div><svg class="rp-edit-btn" viewBox="0 0 14 14" fill="none"><path d="M2 10.5V12h1.5l7-7-1.5-1.5-7 7zM11.5 4l-1.5-1.5 1-1L12.5 3l-1 1z" stroke="rgba(255,255,255,.5)" stroke-width="1"/></svg></div>
+          <div class="rp-section"><div class="rp-section-hdr"><span class="rp-section-title">Agent 设定</span><svg class="rp-section-edit" viewBox="0 0 14 14" fill="none"><path d="M2 10.5V12h1.5l7-7-1.5-1.5-7 7zM11.5 4l-1.5-1.5 1-1L12.5 3l-1 1z" stroke="rgba(255,255,255,.5)" stroke-width="1"/></svg></div>
+            <div class="rp-card"><p><span class="label">经历：</span><span class="value">大学辅导员，管理184个学生。入职第一年被院长表扬"责任心强"，私下被学生称作"林爹"，总有无尽的耐心和贴心对待身边人。</span></p><p><span class="label">风格：</span><span class="value">温润如玉，对任何人和话题都保持温和的态度。耐心细致，共情极强，善于捕捉你的情绪波动。通透豁达，擅长看到表象下的深层本质。</span></p></div>
+          </div>
+          <div class="rp-section"><div class="rp-section-hdr"><span class="rp-section-title">灵感</span><svg class="rp-section-edit" viewBox="0 0 14 14" fill="none" onclick="openSkillPanel()" style="cursor:pointer"><path d="M7 2v10M2 7h10" stroke="rgba(255,255,255,.5)" stroke-width="1.2" stroke-linecap="round"/></svg></div>
+            <div class="rp-tags"><div class="rp-tag">📄 【腾讯文档】一...</div><div class="rp-tag">🔍 重复文件差异对比</div><div class="rp-tag">🎬 视频脚本一键生成</div><div class="rp-tag">📰 热点资讯自动汇总</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- Skill Panel Overlay -->
+<div class="skill-overlay" id="skillOverlay">
+  <div class="skill-overlay-bg" onclick="closeSkillPanel()"></div>
+  <div class="skill-panel">
+    <div class="skill-panel-title">添加技能</div>
+    <input class="skill-panel-search" placeholder="搜索技能...">
+    <div class="skill-list">
+      <div class="skill-item"><span class="skill-item-dot"></span>📰 Hacker News - 技术前沿</div>
+      <div class="skill-item"><span class="skill-item-dot"></span>🐦 Twitter/X - AI 圈热点讨论</div>
+      <div class="skill-item"><span class="skill-item-dot"></span>🐙 GitHub Trending - 热门 AI 项目</div>
+      <div class="skill-item"><span class="skill-item-dot"></span>🌐 AI 技术博客/资讯站</div>
+      <div class="skill-item"><span class="skill-item-dot"></span>📊 数据分析助手</div>
+      <div class="skill-item"><span class="skill-item-dot"></span>📝 文档生成器</div>
+      <div class="skill-item"><span class="skill-item-dot"></span>🔍 智能搜索</div>
+    </div>
+  </div>
+</div>
+
+<script>
+function toggleDropdown(e){e.stopPropagation();document.querySelectorAll('.agent-dropdown.show').forEach(d=>d.classList.remove('show'));e.currentTarget.parentElement.querySelector('.agent-dropdown').classList.toggle('show')}
+document.addEventListener('click',()=>{document.querySelectorAll('.agent-dropdown.show').forEach(d=>d.classList.remove('show'))});
+function openAgentDetail(){document.querySelectorAll('.agent-dropdown.show').forEach(d=>d.classList.remove('show'));document.getElementById('rightPanel').classList.add('open')}
+function closePanel(id){document.getElementById(id).classList.remove('open')}
+function toggleFilePanel(){document.getElementById('filePanel').classList.toggle('open')}
+function openSkillPanel(){document.getElementById('skillOverlay').classList.add('show')}
+function closeSkillPanel(){document.getElementById('skillOverlay').classList.remove('show')}
+function switchFpTab(el,tab){document.querySelectorAll('.fp-tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');document.getElementById('fpArtifacts').classList.toggle('active',tab==='artifacts');document.getElementById('fpFiles').classList.toggle('active',tab==='files')}
+function toggleTimeline(el){el.classList.toggle('collapsed');el.nextElementSibling.classList.toggle('collapsed')}
+function toggleChatItems(el){el.classList.toggle('collapsed');var group=el.closest('.agent-group');var items=group.querySelector('.chat-items');if(items)items.classList.toggle('collapsed')}
+function openOverlay(id,btn){
+  var panels=document.querySelectorAll('.overlay-panel');
+  var alreadyOpen=document.getElementById(id).classList.contains('show');
+  panels.forEach(function(p){p.classList.remove('show')});
+  document.querySelectorAll('.sb-footer-item').forEach(function(b){b.classList.remove('active')});
+  if(!alreadyOpen){document.getElementById(id).classList.add('show');if(btn)btn.classList.add('active')}
+}
+function closeOverlay(id){document.getElementById(id).classList.remove('show')}
+function switchChat(el,chatId){document.querySelectorAll('.chat-item').forEach(function(i){i.classList.remove('active')});el.classList.add('active');document.querySelectorAll('.chat-view').forEach(function(v){v.classList.remove('active')});var view=document.getElementById(chatId);if(view)view.classList.add('active');document.querySelectorAll('.overlay-panel').forEach(function(p){p.classList.remove('show')});document.querySelectorAll('.sb-footer-item').forEach(function(b){b.classList.remove('active')})}
+// Input box focus/blur
+document.querySelector('.input-box').addEventListener('click',function(){document.querySelector('.input-wrap').classList.add('focused')});
+document.addEventListener('click',function(e){var wrap=document.querySelector('.input-wrap');if(wrap.classList.contains('focused')&&!wrap.contains(e.target))wrap.classList.remove('focused')});
+// Search box focus/blur
+function focusSearch(el){el.classList.add('focused')}
+document.addEventListener('click',function(e){var sb=document.querySelector('.sb-search');if(sb&&sb.classList.contains('focused')&&!sb.contains(e.target))sb.classList.remove('focused')});
+// Agent header full row click to toggle
+document.querySelectorAll('.agent-hdr').forEach(function(hdr){hdr.addEventListener('click',function(e){if(e.target.closest('.agent-more')||e.target.closest('.agent-dropdown'))return;var expand=hdr.querySelector('.agent-expand');if(expand)toggleChatItems(expand)})});
+</script>
+</body>
+</html>
