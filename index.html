@@ -27,6 +27,22 @@ body{font-family:-apple-system,'PingFang SC','Microsoft YaHei',sans-serif;backgr
 .sb-search.focused{border-color:rgba(255,255,255,.24)}
 .sb-search-cursor{width:1px;height:14px;background:rgba(255,255,255,.48);display:none;flex-shrink:0}
 .sb-search.focused .sb-search-cursor{display:block;animation:blink 1s step-end infinite}
+/* Pool switcher */
+.pool-wrap{position:relative;margin-bottom:12px}
+.pool-btn{width:100%;background:rgba(255,255,255,.04);border:.5px solid rgba(255,255,255,.08);border-radius:10px;padding:0 12px;height:34px;color:rgba(255,255,255,.55);font-size:13px;cursor:pointer;display:flex;align-items:center;gap:8px;font-family:inherit}
+.pool-btn:hover{background:rgba(255,255,255,.07);color:rgba(255,255,255,.75)}
+.pool-btn-icon{flex-shrink:0;opacity:.6}
+.pool-btn-label{flex:1;text-align:left}
+.pool-btn-arrow{opacity:.4;font-size:10px;transition:transform .2s}
+.pool-btn.open .pool-btn-arrow{transform:rotate(180deg)}
+.pool-dropdown{display:none;position:absolute;top:calc(100% + 4px);left:0;right:0;background:#1a1a1f;border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:6px;z-index:50;box-shadow:0 8px 24px rgba(0,0,0,.5)}
+.pool-dropdown.show{display:block}
+.pool-dropdown-title{color:rgba(255,255,255,.35);font-size:11px;padding:4px 10px 8px;letter-spacing:.5px}
+.pool-option{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;cursor:pointer;color:rgba(255,255,255,.7);font-size:13px}
+.pool-option:hover{background:rgba(255,255,255,.06)}
+.pool-option.active{color:rgba(255,255,255,.9)}
+.pool-option-dot{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.2);flex-shrink:0}
+.pool-option.active .pool-option-dot{background:#46c0ff}
 .sb-search span{color:rgba(255,255,255,.8);font-size:14px}
 .sb-newagent{width:100%;background:rgba(255,255,255,.06);border:.5px solid rgba(0,0,0,.1);border-radius:12px;padding:0 11px;height:38px;color:rgba(255,255,255,.8);font-size:14px;cursor:pointer;display:flex;align-items:center;gap:10px;box-shadow:0 0 10px rgba(0,0,0,.08)}
 .agent-list{flex:1;overflow-y:auto;padding:0 12px}
@@ -200,6 +216,15 @@ body{font-family:-apple-system,'PingFang SC','Microsoft YaHei',sans-serif;backgr
 .input-wrap.focused .input-cursor{display:block;animation:blink 1s step-end infinite}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
 .input-placeholder{color:rgba(255,255,255,.48);font-size:16px;line-height:26px;flex:1}
+/* @ mention panel */
+.at-panel{display:none;position:absolute;bottom:calc(100% + 8px);left:0;right:0;background:#1a1a1f;border:1px solid rgba(255,255,255,.12);border-radius:14px;padding:8px;z-index:20;box-shadow:0 -8px 32px rgba(0,0,0,.5)}
+.at-panel.show{display:block}
+.at-panel-title{color:rgba(255,255,255,.35);font-size:11px;padding:4px 10px 8px;letter-spacing:.5px}
+.at-item{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:10px;cursor:pointer;transition:background .15s}
+.at-item:hover{background:rgba(255,255,255,.07)}
+.at-item-avatar{width:32px;height:32px;border-radius:8px;object-fit:cover;flex-shrink:0}
+.at-item-name{color:rgba(255,255,255,.85);font-size:13px;font-weight:500}
+.at-item-desc{color:rgba(255,255,255,.4);font-size:11px}
 .input-toolbar{display:flex;align-items:center;justify-content:flex-end}
 .tool-icons{display:flex;align-items:center;gap:16px}
 .tool-btns{display:flex;align-items:center;gap:8px}
@@ -316,7 +341,18 @@ body{font-family:-apple-system,'PingFang SC','Microsoft YaHei',sans-serif;backgr
   <div class="main">
     <div class="sidebar">
       <div class="sb-top">
-        <div class="sb-search" onclick="focusSearch(this)"><img src="https://www.figma.com/api/mcp/asset/a74714c5-edd4-4443-b0c4-e648f53c5c23" style="width:14px;height:14px;flex-shrink:0" alt=""><div class="sb-search-cursor"></div><span>搜索</span></div>
+        <div class="pool-wrap">
+          <button class="pool-btn" id="poolBtn" onclick="togglePool()">
+            <svg class="pool-btn-icon" width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 7h10M7 2l5 5-5 5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span class="pool-btn-label">云Claw</span>
+            <span class="pool-btn-arrow">▾</span>
+          </button>
+          <div class="pool-dropdown" id="poolDropdown">
+            <div class="pool-dropdown-title">切换池塘</div>
+            <div class="pool-option active"><span class="pool-option-dot"></span>云Claw</div>
+            <div class="pool-option"><span class="pool-option-dot"></span>MiniClaw</div>
+          </div>
+        </div>
         <button class="sb-newagent"><img src="https://www.figma.com/api/mcp/asset/3575a4fc-252d-4cf1-9809-51e0f6e9e269" style="width:12px;height:12px;flex-shrink:0" alt=""><span>新建一只虾</span></button>
       </div>
       <div class="agent-list">
@@ -378,17 +414,20 @@ body{font-family:-apple-system,'PingFang SC','Microsoft YaHei',sans-serif;backgr
         <div style="display:flex;justify-content:flex-end;margin-bottom:16px;padding:4px 0"><img class="layout-right-btn" src="https://www.figma.com/api/mcp/asset/3abeaf8a-5497-45b0-b7fe-47cc5ae39552" alt="" onclick="toggleFilePanel()"></div>
         <div class="user-bubble"><p>每天上午10点为我推送今天的新闻热点</p></div>
         <div class="exec-area">
-          <div class="exec-header" onclick="toggleTimeline(this)"><span class="exec-title">已完成执行 (1分1秒)</span><svg width="7" height="4" viewBox="0 0 7 4" fill="none"><path d="M.5.5L3.5 3 6.5.5" stroke="rgba(255,255,255,.48)" stroke-width="1" stroke-linecap="round"/></svg></div>
+          <div class="exec-header" onclick="toggleTimeline(this)"><span class="exec-title">已完成执行 (2分34秒)</span><svg width="7" height="4" viewBox="0 0 7 4" fill="none"><path d="M.5.5L3.5 3 6.5.5" stroke="rgba(255,255,255,.48)" stroke-width="1" stroke-linecap="round"/></svg></div>
           <div class="timeline">
-            <div class="tl-step"><div class="tl-step-row"><img class="tl-icon" src="https://www.figma.com/api/mcp/asset/0e05b5fd-b318-4457-a2b0-459a311fe23a" style="width:16px;height:16px" alt=""><span class="tl-text">查看了 SKILL.md</span></div></div>
-            <div class="tl-step"><p class="tl-text-full">好的，我来设置每天上午10点推送新闻热点。先看一下新闻技能怎么用。</p></div>
-            <div class="tl-step"><div class="tl-step-row"><img class="tl-icon" src="https://www.figma.com/api/mcp/asset/0e05b5fd-b318-4457-a2b0-459a311fe23a" style="width:16px;height:16px" alt=""><span class="tl-text">查看了 SKILL.md</span></div></div>
-            <div class="tl-step"><div class="tl-step-row"><img class="tl-icon" src="https://www.figma.com/api/mcp/asset/36b1f1ff-4c79-4838-a098-7395f8c16500" style="width:14px;height:14px" alt=""><span class="tl-text">执行了命令 curl -s "https://feeds.bbci.co.uk/news/rss.xml" | grep -E ...</span></div></div>
-            <div class="tl-step"><div class="tl-step-row"><img class="tl-icon" src="https://www.figma.com/api/mcp/asset/1ae8bc71-4663-469c-9587-e1d2d0c70037" style="width:13px;height:13px" alt=""><span class="tl-text">执行了 https://cloud.tencent.com/developer/article/2640867</span></div></div>
+            <div class="tl-step"><div class="tl-step-row"><img class="tl-icon" src="https://www.figma.com/api/mcp/asset/1ae8bc71-4663-469c-9587-e1d2d0c70037" style="width:13px;height:13px" alt=""><span class="tl-text">调用 search_web — 搜索今日 AI 热点新闻</span></div></div>
+            <div class="tl-step"><div class="tl-step-row"><img class="tl-icon" src="https://www.figma.com/api/mcp/asset/36b1f1ff-4c79-4838-a098-7395f8c16500" style="width:14px;height:14px" alt=""><span class="tl-text">调用 fetch_rss — 读取 Hacker News / Twitter 订阅源</span></div></div>
+            <div class="tl-step"><div class="tl-step-row"><img class="tl-icon" src="https://www.figma.com/api/mcp/asset/0e05b5fd-b318-4457-a2b0-459a311fe23a" style="width:16px;height:16px" alt=""><span class="tl-text">调用 filter_content — 过滤 AI 相关关键词，保留 12 条</span></div></div>
+            <div class="tl-step"><p class="tl-text-full">已获取今日 AI 热点，共筛选出 12 条相关资讯，正在整理摘要...</p></div>
+            <div class="tl-step"><div class="tl-step-row"><img class="tl-icon" src="https://www.figma.com/api/mcp/asset/1ae8bc71-4663-469c-9587-e1d2d0c70037" style="width:13px;height:13px" alt=""><span class="tl-text">调用 summarize — 生成每条新闻 1-2 句摘要</span></div></div>
+            <div class="tl-step"><div class="tl-step-row"><img class="tl-icon" src="https://www.figma.com/api/mcp/asset/36b1f1ff-4c79-4838-a098-7395f8c16500" style="width:14px;height:14px" alt=""><span class="tl-text">调用 format_output — 按重要性排序，格式化为飞书消息</span></div></div>
+            <div class="tl-step"><div class="tl-step-row"><img class="tl-icon" src="https://www.figma.com/api/mcp/asset/0e05b5fd-b318-4457-a2b0-459a311fe23a" style="width:16px;height:16px" alt=""><span class="tl-text">调用 send_feishu — 推送至飞书群，消息 ID: msg_20260407_001</span></div></div>
           </div>
         </div>
         <div class="ai-response">
-          <p class="ai-response-text">✅ <strong>每日 AI 新闻推送已设置成功！</strong></p>
+          <p class="ai-response-text">✅ <strong>今日 AI 新闻已成功推送至飞书！</strong></p>
+          <p class="ai-response-text" style="margin-top:8px">共推送 <strong>12</strong> 条精选资讯，涵盖大模型动态、产品发布、行业融资等热点。</p>
           <div class="ai-divider"></div>
           <p class="ai-section-title">📋 任务详情</p>
           <table class="info-table">
@@ -589,6 +628,13 @@ body{font-family:-apple-system,'PingFang SC','Microsoft YaHei',sans-serif;backgr
       <div class="input-wrap">
         <div class="input-blur"></div>
         <div style="position:relative">
+          <div class="at-panel" id="atPanel">
+            <div class="at-panel-title">提及 Agent</div>
+            <div class="at-item" onclick="selectAt('日常虾')"><img class="at-item-avatar" src="https://www.figma.com/api/mcp/asset/54650ace-c6d7-4679-8df4-b36799a401a3" alt=""><div><div class="at-item-name">日常虾</div><div class="at-item-desc">日常生活、资讯推送、生活规划</div></div></div>
+            <div class="at-item" onclick="selectAt('写作虾')"><img class="at-item-avatar" src="https://www.figma.com/api/mcp/asset/5383d3ec-241f-4d85-aa30-831c3512425a" style="border-radius:50%" alt=""><div><div class="at-item-name">写作虾</div><div class="at-item-desc">文案创作、内容生成、文档撰写</div></div></div>
+            <div class="at-item" onclick="selectAt('研究虾')"><img class="at-item-avatar" src="https://www.figma.com/api/mcp/asset/8ff33e6f-712a-4dc2-97e4-2d5e8a9574d6" style="border-radius:50%" alt=""><div><div class="at-item-name">研究虾</div><div class="at-item-desc">深度调研、信息整合、报告生成</div></div></div>
+            <div class="at-item" onclick="selectAt('数据虾')"><img class="at-item-avatar" src="https://www.figma.com/api/mcp/asset/3edf05f7-33ac-4d56-821a-89ee76f38cd4" style="border-radius:50%" alt=""><div><div class="at-item-name">数据虾</div><div class="at-item-desc">数据分析、图表生成、趋势洞察</div></div></div>
+          </div>
           <div class="input-glow"></div>
           <div class="input-box">
             <div class="input-textarea"><div class="input-cursor"></div><span class="input-placeholder">输入任务描述或提问任何问题</span></div>
@@ -662,11 +708,11 @@ body{font-family:-apple-system,'PingFang SC','Microsoft YaHei',sans-serif;backgr
       <div class="right-panel" id="rightPanel">
         <div class="rp-header"><div class="rp-header-left"><svg viewBox="0 0 19 19" fill="none"><rect x="1" y="1" width="17" height="17" rx="4" stroke="rgba(255,255,255,.6)" stroke-width="1.2"/><circle cx="9.5" cy="7" r="2.5" stroke="rgba(255,255,255,.6)" stroke-width="1.1"/><path d="M4.5 16c0-2.5 2-4 5-4s5 1.5 5 4" stroke="rgba(255,255,255,.6)" stroke-width="1.1"/></svg><span class="rp-header-title">Agent 详情</span></div><button class="rp-close" onclick="closePanel('rightPanel')">✕</button></div>
         <div class="rp-body">
-          <div class="rp-agent-info"><img class="rp-agent-avatar" src="https://www.figma.com/api/mcp/asset/3edf05f7-33ac-4d56-821a-89ee76f38cd4" alt=""><div class="rp-agent-meta"><div class="rp-agent-name">生活虾</div><div class="rp-agent-desc">你的生活日常万能小帮手</div></div><svg class="rp-edit-btn" viewBox="0 0 14 14" fill="none"><path d="M2 10.5V12h1.5l7-7-1.5-1.5-7 7zM11.5 4l-1.5-1.5 1-1L12.5 3l-1 1z" stroke="rgba(255,255,255,.5)" stroke-width="1"/></svg></div>
+          <div class="rp-agent-info"><img class="rp-agent-avatar" src="https://www.figma.com/api/mcp/asset/54650ace-c6d7-4679-8df4-b36799a401a3" style="border-radius:6px" alt=""><div class="rp-agent-meta"><div class="rp-agent-name">日常虾</div><div class="rp-agent-desc">你的日常生活智能助手</div></div><svg class="rp-edit-btn" viewBox="0 0 14 14" fill="none"><path d="M2 10.5V12h1.5l7-7-1.5-1.5-7 7zM11.5 4l-1.5-1.5 1-1L12.5 3l-1 1z" stroke="rgba(255,255,255,.5)" stroke-width="1"/></svg></div>
           <div class="rp-section"><div class="rp-section-hdr"><span class="rp-section-title">Agent 设定</span><svg class="rp-section-edit" viewBox="0 0 14 14" fill="none"><path d="M2 10.5V12h1.5l7-7-1.5-1.5-7 7zM11.5 4l-1.5-1.5 1-1L12.5 3l-1 1z" stroke="rgba(255,255,255,.5)" stroke-width="1"/></svg></div>
             <div class="rp-card"><p><span class="label">经历：</span><span class="value">大学辅导员，管理184个学生。入职第一年被院长表扬"责任心强"，私下被学生称作"林爹"，总有无尽的耐心和贴心对待身边人。</span></p><p><span class="label">风格：</span><span class="value">温润如玉，对任何人和话题都保持温和的态度。耐心细致，共情极强，善于捕捉你的情绪波动。通透豁达，擅长看到表象下的深层本质。</span></p></div>
           </div>
-          <div class="rp-section"><div class="rp-section-hdr"><span class="rp-section-title">灵感</span><svg class="rp-section-edit" viewBox="0 0 14 14" fill="none" onclick="openSkillPanel()" style="cursor:pointer"><path d="M7 2v10M2 7h10" stroke="rgba(255,255,255,.5)" stroke-width="1.2" stroke-linecap="round"/></svg></div>
+          <div class="rp-section"><div class="rp-section-hdr"><span class="rp-section-title">技能列表</span><svg class="rp-section-edit" viewBox="0 0 14 14" fill="none" onclick="openSkillPanel()" style="cursor:pointer"><path d="M7 2v10M2 7h10" stroke="rgba(255,255,255,.5)" stroke-width="1.2" stroke-linecap="round"/></svg></div>
             <div class="rp-tags"><div class="rp-tag">📄 【腾讯文档】一...</div><div class="rp-tag">🔍 重复文件差异对比</div><div class="rp-tag">🎬 视频脚本一键生成</div><div class="rp-tag">📰 热点资讯自动汇总</div></div>
           </div>
         </div>
@@ -694,7 +740,13 @@ body{font-family:-apple-system,'PingFang SC','Microsoft YaHei',sans-serif;backgr
 
 <script>
 function toggleDropdown(e){e.stopPropagation();document.querySelectorAll('.agent-dropdown.show').forEach(d=>d.classList.remove('show'));e.currentTarget.parentElement.querySelector('.agent-dropdown').classList.toggle('show')}
-document.addEventListener('click',()=>{document.querySelectorAll('.agent-dropdown.show').forEach(d=>d.classList.remove('show'))});
+function togglePool(){var btn=document.getElementById('poolBtn');var dd=document.getElementById('poolDropdown');btn.classList.toggle('open');dd.classList.toggle('show')}
+function selectAt(name){document.getElementById('atPanel').classList.remove('show');var ph=document.querySelector('.input-placeholder');ph.textContent='@'+name+' '}
+document.addEventListener('click',function(e){
+  document.querySelectorAll('.agent-dropdown.show').forEach(d=>d.classList.remove('show'));
+  var poolWrap=document.querySelector('.pool-wrap');
+  if(poolWrap&&!poolWrap.contains(e.target)){document.getElementById('poolDropdown').classList.remove('show');document.getElementById('poolBtn').classList.remove('open')}
+});
 function openAgentDetail(){document.querySelectorAll('.agent-dropdown.show').forEach(d=>d.classList.remove('show'));document.getElementById('rightPanel').classList.add('open')}
 function closePanel(id){document.getElementById(id).classList.remove('open')}
 function toggleFilePanel(){document.getElementById('filePanel').classList.toggle('open')}
@@ -712,9 +764,11 @@ function openOverlay(id,btn){
 }
 function closeOverlay(id){document.getElementById(id).classList.remove('show')}
 function switchChat(el,chatId){document.querySelectorAll('.chat-item').forEach(function(i){i.classList.remove('active')});el.classList.add('active');document.querySelectorAll('.chat-view').forEach(function(v){v.classList.remove('active')});var view=document.getElementById(chatId);if(view)view.classList.add('active');document.querySelectorAll('.overlay-panel').forEach(function(p){p.classList.remove('show')});document.querySelectorAll('.sb-footer-item').forEach(function(b){b.classList.remove('active')})}
-// Input box focus/blur
+// Input box focus/blur + @ trigger
 document.querySelector('.input-box').addEventListener('click',function(){document.querySelector('.input-wrap').classList.add('focused')});
-document.addEventListener('click',function(e){var wrap=document.querySelector('.input-wrap');if(wrap.classList.contains('focused')&&!wrap.contains(e.target))wrap.classList.remove('focused')});
+document.querySelector('.input-placeholder').addEventListener('keyup',function(e){if(this.textContent.endsWith('@')){document.getElementById('atPanel').classList.add('show')}else{document.getElementById('atPanel').classList.remove('show')}});
+document.querySelector('.input-placeholder').setAttribute('contenteditable','true');
+document.addEventListener('click',function(e){var wrap=document.querySelector('.input-wrap');if(wrap.classList.contains('focused')&&!wrap.contains(e.target)){wrap.classList.remove('focused');document.getElementById('atPanel').classList.remove('show')}});
 // Search box focus/blur
 function focusSearch(el){el.classList.add('focused')}
 document.addEventListener('click',function(e){var sb=document.querySelector('.sb-search');if(sb&&sb.classList.contains('focused')&&!sb.contains(e.target))sb.classList.remove('focused')});
